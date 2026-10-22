@@ -5,237 +5,935 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <title>Library QR Attendance System</title>
+  <title>LibraryHub | Attendance System</title>
+  <meta name="theme-color" content="#183d32">
 
   <script src="https://unpkg.com/html5-qrcode"></script>
 
   <style>
+    :root {
+      --green: #183d32;
+      --green-light: #285746;
+      --green-pale: #eaf1ec;
+      --gold: #c7a568;
+      --cream: #f7f5ef;
+      --white: #ffffff;
+      --ink: #24342e;
+      --muted: #718078;
+      --border: #e3e8e1;
+      --red: #b84040;
+      --shadow: 0 12px 36px rgba(24, 61, 50, 0.08);
+    }
+
     * {
       box-sizing: border-box;
     }
 
     body {
-      font-family: Arial, sans-serif;
-      background: #f2f5f9;
-      color: #1f2937;
       margin: 0;
-      padding: 20px;
+      min-height: 100vh;
+      background:
+        radial-gradient(ellipse at top left, #e8eee5 0, transparent 38%),
+        var(--cream);
+      color: var(--ink);
+      font-family: "Segoe UI", Arial, sans-serif;
+      font-size: 15px;
     }
 
-    .container {
-      max-width: 520px;
+    button, select, input {
+      font: inherit;
+    }
+
+    button {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .topbar {
+      background: var(--green);
+      color: white;
+      padding: 15px 22px;
+      border-bottom: 3px solid var(--gold);
+    }
+
+    .topbar-inner {
+      max-width: 1050px;
+      margin: auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-icon {
+      display: grid;
+      place-items: center;
+      width: 43px;
+      height: 43px;
+      flex-shrink: 0;
+      background: rgba(255,255,255,.12);
+      border: 1px solid rgba(255,255,255,.2);
+      border-radius: 12px;
+      font-size: 24px;
+    }
+
+    .brand-name {
+      font-size: 18px;
+      font-weight: 750;
+      letter-spacing: .2px;
+    }
+
+    .brand-subtitle {
+      color: #d3dfd7;
+      font-size: 11px;
+      margin-top: 3px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+
+    .topbar-label {
+      color: #e4eae5;
+      font-size: 12px;
+      text-align: right;
+    }
+
+    .page {
+      max-width: 1050px;
       margin: 0 auto;
-      background: white;
-      padding: 24px;
-      border-radius: 16px;
-      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+      padding: 35px 20px 45px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 24px;
+      margin-bottom: 26px;
+    }
+
+    .eyebrow {
+      color: #647d6b;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-size: 11px;
+      font-weight: 800;
+      margin-bottom: 9px;
     }
 
     h1 {
-      text-align: center;
-      font-size: 25px;
-      margin-top: 0;
+      color: var(--green);
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(29px, 5vw, 43px);
+      font-weight: 600;
+      line-height: 1.12;
+      margin: 0;
     }
 
-    h3 {
-      margin-top: 0;
+    .hero p {
+      max-width: 540px;
+      color: var(--muted);
+      line-height: 1.7;
+      margin: 12px 0 0;
     }
 
-    .subtitle {
-      text-align: center;
-      color: #64748b;
-      margin-bottom: 22px;
+    .hero-decoration {
+      display: grid;
+      grid-template-columns: repeat(4, 18px);
+      align-items: end;
+      gap: 5px;
+      height: 72px;
+      padding: 0 10px 9px;
+      border-bottom: 4px solid #9b8052;
+      opacity: .85;
+    }
+
+    .book {
+      border-radius: 3px 3px 1px 1px;
+      height: 48px;
+      background: #285746;
+      border-left: 3px solid rgba(255,255,255,.25);
+    }
+
+    .book:nth-child(2) {
+      height: 61px;
+      background: #b68e54;
+    }
+
+    .book:nth-child(3) {
+      height: 53px;
+      background: #9e6250;
+    }
+
+    .book:nth-child(4) {
+      height: 42px;
+      background: #687f6a;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.08fr) minmax(0, .92fr);
+      gap: 22px;
+      align-items: start;
+    }
+
+    .card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 17px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .card-header {
+      padding: 20px 22px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .card-heading {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .heading-icon {
+      display: grid;
+      place-items: center;
+      width: 39px;
+      height: 39px;
+      flex-shrink: 0;
+      border-radius: 11px;
+      background: var(--green-pale);
+      color: var(--green);
+      font-size: 19px;
+    }
+
+    h2 {
+      font-size: 16px;
+      margin: 0;
+      color: var(--green);
+    }
+
+    .card-subheading {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .live-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      white-space: nowrap;
+      border-radius: 30px;
+      padding: 7px 10px;
+      background: #edf5ed;
+      color: #386b48;
+      font-size: 11px;
+      font-weight: 750;
+    }
+
+    .live-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #5b9b68;
+    }
+
+    .card-body {
+      padding: 20px 22px 22px;
     }
 
     #reader {
       width: 100%;
+      min-height: 220px;
+      border: 1px solid var(--border) !important;
+      border-radius: 13px;
       overflow: hidden;
+      background: #f7f8f5;
+    }
+
+    #reader video {
+      width: 100% !important;
+      border-radius: 12px;
+      object-fit: cover;
+    }
+
+    #reader img {
+      max-width: 100%;
+    }
+
+    #reader__dashboard_section_csr button,
+    #reader button {
+      border-radius: 7px;
+      padding: 8px 12px;
+      cursor: pointer;
+    }
+
+    #reader__dashboard_section_swaplink {
+      color: var(--green);
+    }
+
+    .zoom-box {
+      margin-top: 17px;
+      padding: 15px;
+      background: #f7f8f5;
+      border: 1px solid var(--border);
       border-radius: 12px;
     }
 
-    button, select {
-      width: 100%;
-      padding: 13px;
-      margin-top: 10px;
-      border-radius: 8px;
-      font-size: 16px;
+    .zoom-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
     }
 
-    button {
-      border: none;
-      cursor: pointer;
-      color: white;
-      background: #2563eb;
-      font-weight: bold;
-    }
-
-    button:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-
-    select {
-      border: 1px solid #cbd5e1;
-      background: white;
-      color: #1f2937;
-    }
-
-    .secondary {
-      background: #64748b;
-    }
-
-    .exit-button {
-      background: #dc2626;
-    }
-
-    .panel {
-      margin-top: 20px;
-      padding: 16px;
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
-      border-radius: 10px;
-    }
-
-    .hidden {
-      display: none !important;
-    }
-
-    .student-name {
-      font-size: 20px;
-      font-weight: bold;
-      margin-bottom: 12px;
-    }
-
-    .detail {
-      margin: 7px 0;
-      overflow-wrap: anywhere;
-    }
-
-    #status {
-      margin-top: 16px;
-      padding: 12px;
-      border-radius: 8px;
-      background: #eff6ff;
-      text-align: center;
-      overflow-wrap: anywhere;
-      line-height: 1.5;
-    }
-
-    .note {
-      color: #64748b;
+    .zoom-label {
+      color: var(--green);
       font-size: 13px;
-      line-height: 1.5;
-      margin-top: 12px;
-      text-align: center;
-    }
-
-    #zoomSlider {
-      width: 100%;
-      margin: 12px 0;
-      accent-color: #2563eb;
+      font-weight: 750;
     }
 
     #zoomValue {
+      color: #647d6b;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    #zoomSlider {
+      display: block;
+      width: 100%;
+      margin: 15px 0 7px;
+      accent-color: var(--green);
+      cursor: pointer;
+    }
+
+    #zoomSlider:disabled {
+      cursor: not-allowed;
+      opacity: .5;
+    }
+
+    .zoom-help {
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.5;
+    }
+
+    .primary-btn,
+    .secondary-btn,
+    .exit-btn {
+      width: 100%;
+      min-height: 47px;
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 750;
+      cursor: pointer;
+      transition: background .18s, transform .18s;
+    }
+
+    .primary-btn {
+      margin-top: 17px;
+      border: 1px solid var(--green);
+      background: var(--green);
+      color: white;
+    }
+
+    .primary-btn:hover:not(:disabled) {
+      background: var(--green-light);
+    }
+
+    .secondary-btn {
+      border: 1px solid var(--border);
+      background: white;
+      color: var(--green);
+      margin-top: 9px;
+    }
+
+    .secondary-btn:hover:not(:disabled) {
+      background: var(--green-pale);
+    }
+
+    .exit-btn {
+      margin-top: 17px;
+      border: 1px solid var(--red);
+      background: var(--red);
+      color: white;
+    }
+
+    button:disabled {
+      opacity: .55;
+      cursor: not-allowed;
+    }
+
+    .status {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-top: 16px;
+      padding: 13px 14px;
+      background: #f4f6f2;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: #53675b;
+      font-size: 12px;
+      line-height: 1.6;
+      overflow-wrap: anywhere;
+    }
+
+    .status-icon {
+      flex-shrink: 0;
+      font-size: 15px;
+    }
+
+    .status.error {
+      color: #943b35;
+      background: #fff3f1;
+      border-color: #f1d7d2;
+    }
+
+    .status.success {
+      color: #286444;
+      background: #eff8f0;
+      border-color: #d4e9d7;
+    }
+
+    .right-column {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      min-width: 0;
+    }
+
+    .welcome-panel {
+      background: var(--green);
+      color: white;
+      padding: 22px;
+      border-radius: 16px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .welcome-panel::after {
+      content: "❧";
+      position: absolute;
+      right: 8px;
+      bottom: -45px;
+      color: rgba(255,255,255,.08);
+      font-size: 130px;
+      line-height: 1;
+      pointer-events: none;
+    }
+
+    .welcome-panel h2 {
+      color: white;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 23px;
+      font-weight: 500;
+      position: relative;
+      z-index: 1;
+    }
+
+    .welcome-panel p {
+      max-width: 330px;
+      color: #d7e2da;
+      font-size: 13px;
+      line-height: 1.7;
+      margin: 10px 0 0;
+      position: relative;
+      z-index: 1;
+    }
+
+    .welcome-rule {
+      width: 42px;
+      height: 3px;
+      margin-top: 15px;
+      background: var(--gold);
+    }
+
+    .panel-body {
+      padding: 20px;
+    }
+
+    .student-name {
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 24px;
+      line-height: 1.3;
+      color: var(--green);
+      overflow-wrap: anywhere;
+      margin: 0 0 5px;
+    }
+
+    .student-caption {
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 18px;
+    }
+
+    .details-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .detail-item {
+      min-width: 0;
+      background: #f7f8f5;
+      border: 1px solid #edf0e9;
+      padding: 11px;
+      border-radius: 9px;
+    }
+
+    .detail-label {
+      display: block;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      font-size: 9px;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+
+    .detail-value {
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 650;
+      overflow-wrap: anywhere;
+    }
+
+    .section-label {
+      display: block;
+      color: var(--green);
+      font-weight: 750;
+      font-size: 13px;
+      margin-bottom: 10px;
+    }
+
+    .area-intro {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.6;
+      margin: 0 0 15px;
+    }
+
+    .area-options {
+      display: grid;
+      gap: 9px;
+    }
+
+    .area-option {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 13px;
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      cursor: pointer;
+      transition: border-color .15s, background .15s;
+    }
+
+    .area-option:hover {
+      border-color: #8ca695;
+      background: #f8faf7;
+    }
+
+    .area-option:has(input:checked) {
+      border-color: var(--green);
+      background: #edf4ee;
+      box-shadow: inset 0 0 0 1px var(--green);
+    }
+
+    .area-option input {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--green);
+      flex-shrink: 0;
+    }
+
+    .area-symbol {
+      display: grid;
+      place-items: center;
+      width: 38px;
+      height: 38px;
+      flex-shrink: 0;
+      border-radius: 9px;
+      background: var(--green-pale);
+      font-size: 19px;
+    }
+
+    .area-title {
+      color: var(--green);
+      font-size: 13px;
+      font-weight: 750;
+    }
+
+    .area-description {
+      color: var(--muted);
+      font-size: 11px;
+      margin-top: 4px;
+      line-height: 1.45;
+    }
+
+    .active-visit {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: #edf5ed;
+      border: 1px solid #dbe9dc;
+      padding: 14px;
+      border-radius: 11px;
+      margin-top: 15px;
+    }
+
+    .active-visit-icon {
+      display: grid;
+      place-items: center;
+      width: 40px;
+      height: 40px;
+      flex-shrink: 0;
+      background: white;
+      border-radius: 10px;
+      font-size: 20px;
+    }
+
+    .active-visit-label {
+      color: #5b7763;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      font-weight: 800;
+    }
+
+    .active-visit-area {
+      color: var(--green);
+      font-size: 14px;
+      font-weight: 750;
+      margin-top: 5px;
+    }
+
+    .privacy-note {
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.7;
+      padding: 0 3px;
+    }
+
+    .footer {
       text-align: center;
-      font-weight: bold;
-      margin: 8px 0;
+      color: #879187;
+      font-size: 11px;
+      line-height: 1.7;
+      padding-top: 27px;
+    }
+
+    .footer span {
+      color: #567360;
+    }
+
+    @media (max-width: 760px) {
+      .page {
+        padding: 25px 14px 35px;
+      }
+
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .hero {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-decoration {
+        display: none;
+      }
+
+      .topbar {
+        padding: 13px 15px;
+      }
+
+      .topbar-label {
+        font-size: 10px;
+      }
+
+      .card-header {
+        padding: 17px;
+      }
+
+      .card-body,
+      .panel-body {
+        padding: 17px;
+      }
+
+      .welcome-panel {
+        padding: 20px;
+      }
+    }
+
+    @media (max-width: 380px) {
+      .brand-name {
+        font-size: 15px;
+      }
+
+      .brand-subtitle {
+        font-size: 9px;
+        letter-spacing: 1px;
+      }
+
+      .topbar-label {
+        display: none;
+      }
+
+      .details-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .live-pill {
+        font-size: 10px;
+        padding: 6px 8px;
+      }
     }
   </style>
 </head>
 
 <body>
-  <main class="container">
-    <h1>Library Attendance</h1>
-    <p class="subtitle">
-      Scan your student QR code to begin.
-    </p>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="brand-icon" aria-hidden="true">📚</div>
+        <div>
+          <div class="brand-name">LibraryHub</div>
+          <div class="brand-subtitle">Library Attendance System</div>
+        </div>
+      </div>
+      <div class="topbar-label">STUDENT SERVICES<br>ATTENDANCE PORTAL</div>
+    </div>
+  </header>
 
-    <div id="reader"></div>
+  <main class="page">
+    <section class="hero">
+      <div>
+        <div class="eyebrow">Welcome to the library</div>
+        <h1>Your space to learn<br>and discover.</h1>
+        <p>
+          Scan your student QR code to record your visit.
+          Select your preferred study area and enjoy your time in the library.
+        </p>
+      </div>
 
-    <!-- Camera zoom controls -->
-    <div class="panel" id="zoomPanel">
-      <h3>Camera Zoom</h3>
-      <p id="zoomValue">Zoom will be available when the camera starts.</p>
+      <div class="hero-decoration" aria-hidden="true">
+        <div class="book"></div>
+        <div class="book"></div>
+        <div class="book"></div>
+        <div class="book"></div>
+      </div>
+    </section>
 
-      <input
-        type="range"
-        id="zoomSlider"
-        min="1"
-        max="3"
-        step="0.1"
-        value="1"
-        disabled
-      >
+    <div class="layout">
+      <!-- LEFT: SCANNER -->
+      <section class="card">
+        <div class="card-header">
+          <div class="card-heading">
+            <div class="heading-icon">▦</div>
+            <div>
+              <h2>QR Code Scanner</h2>
+              <div class="card-subheading">Scan your student ID</div>
+            </div>
+          </div>
+          <div class="live-pill">
+            <span class="live-dot"></span>
+            Attendance
+          </div>
+        </div>
 
-      <p class="note">
-        Zoom depends on your camera and browser. Some desktop webcams
-        do not support zoom.
-      </p>
+        <div class="card-body">
+          <div id="reader"></div>
+
+          <div class="zoom-box">
+            <div class="zoom-top">
+              <span class="zoom-label">⌕ Camera Zoom</span>
+              <span id="zoomValue">Not available yet</span>
+            </div>
+
+            <input
+              type="range"
+              id="zoomSlider"
+              min="1"
+              max="3"
+              step="0.1"
+              value="1"
+              disabled
+              aria-label="Camera zoom"
+            >
+
+            <div class="zoom-help">
+              Adjust the camera zoom if your device supports it.
+            </div>
+          </div>
+
+          <button id="startButton" class="primary-btn" onclick="startCamera()">
+            Start QR Scanner
+          </button>
+
+          <div id="status" class="status" role="status" aria-live="polite">
+            <span class="status-icon" id="statusIcon">●</span>
+            <span id="statusText">Ready to scan. Start the camera when you're ready.</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- RIGHT: STUDENT DETAILS AND ACTIONS -->
+      <div class="right-column">
+        <section class="welcome-panel">
+          <h2>A welcoming place<br>for every learner.</h2>
+          <div class="welcome-rule"></div>
+          <p>
+            Please scan your registered student QR code.
+            Your attendance will be recorded securely in the library log.
+          </p>
+        </section>
+
+        <section id="studentPanel" class="card hidden">
+          <div class="card-header">
+            <div class="card-heading">
+              <div class="heading-icon">♙</div>
+              <div>
+                <h2>Student Information</h2>
+                <div class="card-subheading">Registered student profile</div>
+              </div>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div id="studentName" class="student-name"></div>
+            <div class="student-caption">Verified student record</div>
+            <div id="studentDetails" class="details-grid"></div>
+          </div>
+        </section>
+
+        <section id="areaPanel" class="card hidden">
+          <div class="card-header">
+            <div class="card-heading">
+              <div class="heading-icon">⌂</div>
+              <div>
+                <h2>Choose Your Study Area</h2>
+                <div class="card-subheading">Where will you stay today?</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel-body">
+            <p class="area-intro">
+              Select one area before confirming your library entry.
+            </p>
+
+            <div class="area-options">
+              <label class="area-option">
+                <input type="radio" name="libraryArea"
+                       value="Interactive Area">
+                <span class="area-symbol">💻</span>
+                <span>
+                  <span class="area-title">Interactive Area</span>
+                  <span class="area-description">
+                    Digital resources and interactive learning
+                  </span>
+                </span>
+              </label>
+
+              <label class="area-option">
+                <input type="radio" name="libraryArea"
+                       value="Reading Area">
+                <span class="area-symbol">📖</span>
+                <span>
+                  <span class="area-title">Reading Area</span>
+                  <span class="area-description">
+                    Quiet reading, studying, and individual work
+                  </span>
+                </span>
+              </label>
+
+              <label class="area-option">
+                <input type="radio" name="libraryArea"
+                       value="Discussion Room">
+                <span class="area-symbol">👥</span>
+                <span>
+                  <span class="area-title">Discussion Room</span>
+                  <span class="area-description">
+                    Group study and collaborative discussions
+                  </span>
+                </span>
+              </label>
+            </div>
+
+            <button id="entryButton" class="primary-btn" onclick="confirmEntry()">
+              Confirm Library Entry
+            </button>
+
+            <button class="secondary-btn" onclick="cancelAction()">
+              Cancel
+            </button>
+          </div>
+        </section>
+
+        <section id="exitPanel" class="card hidden">
+          <div class="card-header">
+            <div class="card-heading">
+              <div class="heading-icon">↗</div>
+              <div>
+                <h2>Active Library Visit</h2>
+                <div class="card-subheading">Your current attendance session</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel-body">
+            <p class="area-intro">
+              You already have an active library visit.
+            </p>
+
+            <div class="active-visit">
+              <div class="active-visit-icon">📍</div>
+              <div>
+                <div class="active-visit-label">Selected study area</div>
+                <div id="activeVisit" class="active-visit-area"></div>
+              </div>
+            </div>
+
+            <button id="exitButton" class="exit-btn" onclick="confirmExit()">
+              Record Library Exit
+            </button>
+
+            <button class="secondary-btn" onclick="cancelAction()">
+              Cancel
+            </button>
+          </div>
+        </section>
+
+        <div class="privacy-note">
+          <strong>Reminder:</strong> Please use your own registered student QR
+          code. Make sure your entry or exit has been confirmed before leaving
+          the scanner.
+        </div>
+      </div>
     </div>
 
-    <button id="startButton" onclick="startCamera()">
-      Start QR Scanner
-    </button>
-
-    <!-- Student information -->
-    <div id="studentPanel" class="panel hidden">
-      <div id="studentName" class="student-name"></div>
-      <div id="studentDetails"></div>
-    </div>
-
-    <!-- Area selection -->
-    <div id="areaPanel" class="panel hidden">
-      <h3>Choose Your Library Area</h3>
-      <p>Select the area where you will stay.</p>
-
-      <select id="areaSelect">
-        <option value="">-- Select an area --</option>
-        <option value="Interactive Area">Interactive Area</option>
-        <option value="Reading Area">Reading Area</option>
-        <option value="Discussion Room">Discussion Room</option>
-      </select>
-
-      <button id="entryButton" onclick="confirmEntry()">
-        Confirm Entry
-      </button>
-
-      <button class="secondary" onclick="cancelAction()">
-        Cancel
-      </button>
-    </div>
-
-    <!-- Exit confirmation -->
-    <div id="exitPanel" class="panel hidden">
-      <h3>Active Library Visit</h3>
-      <p id="activeVisit"></p>
-      <p>Are you leaving the library now?</p>
-
-      <button
-        id="exitButton"
-        class="exit-button"
-        onclick="confirmExit()"
-      >
-        Record Exit
-      </button>
-
-      <button class="secondary" onclick="cancelAction()">
-        Cancel
-      </button>
-    </div>
-
-    <div id="status" role="status" aria-live="polite">
-      Ready to scan.
-    </div>
-
-    <p class="note">
-      Allow camera access when prompted. Use HTTPS to access the camera.
-    </p>
+    <footer class="footer">
+      <span>LIBRARYHUB</span> · Library Attendance System<br>
+      Supporting a more organized and welcoming learning environment.
+    </footer>
   </main>
 
   <script>
-    // Replace this with your deployed Google Apps Script URL ending in /exec.
-   
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbzaHl-MN9mYsEPmjE5O7MMV9L7waUqfCDOk0nVC9QG1t7zQArusgHngRzBH1l0T4opT/exec";
+    // Your deployed Google Apps Script Web App URL.
+    const GAS_URL =
+      "https://script.google.com/macros/s/AKfycbzaHl-MN9mYsEPmjE5O7MMV9L7waUqfCDOk0nVC9QG1t7zQArusgHngRzBH1l0T4opT/exec";
 
     const scanner = new Html5Qrcode("reader");
 
@@ -245,12 +943,24 @@
 
     let cameraTrack = null;
     let zoomSupported = false;
-    let zoomMin = 1;
-    let zoomMax = 3;
-    let zoomStep = 0.1;
 
-    function setStatus(message) {
-      document.getElementById("status").textContent = message;
+    function setStatus(message, type = "normal") {
+      const status = document.getElementById("status");
+      const icon = document.getElementById("statusIcon");
+
+      document.getElementById("statusText").textContent = message;
+
+      status.classList.remove("error", "success");
+
+      if (type === "error") {
+        status.classList.add("error");
+        icon.textContent = "!";
+      } else if (type === "success") {
+        status.classList.add("success");
+        icon.textContent = "✓";
+      } else {
+        icon.textContent = "●";
+      }
     }
 
     function show(id) {
@@ -287,29 +997,28 @@
       ];
 
       values.forEach(function(item) {
-        const line = document.createElement("p");
-        line.className = "detail";
-        line.textContent =
-          item[0] + ": " + (item[1] || "Not provided");
-        details.appendChild(line);
+        const box = document.createElement("div");
+        box.className = "detail-item";
+
+        const label = document.createElement("span");
+        label.className = "detail-label";
+        label.textContent = item[0];
+
+        const value = document.createElement("span");
+        value.className = "detail-value";
+        value.textContent = item[1] || "Not provided";
+
+        box.appendChild(label);
+        box.appendChild(value);
+        details.appendChild(box);
       });
 
       show("studentPanel");
     }
 
-    // JSONP request to Google Apps Script.
+    // Communicate with Apps Script using JSONP.
     function requestAppsScript(action, extraParams = {}) {
       return new Promise(function(resolve, reject) {
-        if (
-          GAS_URL.includes("PASTE_YOUR_DEPLOYED_WEB_APP_URL_HERE") ||
-          !GAS_URL
-        ) {
-          reject(new Error(
-            "Please add your deployed Apps Script Web App URL to the code."
-          ));
-          return;
-        }
-
         const callbackName =
           "libraryCallback_" + Date.now() + "_" +
           Math.floor(Math.random() * 1000000);
@@ -340,13 +1049,12 @@
 
         timeout = setTimeout(function() {
           fail(new Error(
-            "Request timed out. Check your Web App URL and deployment access."
+            "Request timed out. Check the Apps Script URL and deployment access."
           ));
         }, 15000);
 
         window[callbackName] = function(result) {
           if (finished) return;
-
           finished = true;
           cleanup();
 
@@ -373,7 +1081,6 @@
       });
     }
 
-    // Reset zoom controls whenever a camera session ends.
     function resetZoom() {
       cameraTrack = null;
       zoomSupported = false;
@@ -386,14 +1093,12 @@
       slider.value = "1";
 
       document.getElementById("zoomValue").textContent =
-        "Zoom will be available when the camera starts.";
+        "Not available yet";
     }
 
-    // Find the live camera track and its actual zoom capabilities.
     async function setupZoom() {
       resetZoom();
 
-      // Allow the video element to become available.
       await new Promise(function(resolve) {
         setTimeout(resolve, 300);
       });
@@ -402,7 +1107,7 @@
 
       if (!video || !video.srcObject) {
         document.getElementById("zoomValue").textContent =
-          "Camera zoom is unavailable.";
+          "Camera zoom unavailable";
         return;
       }
 
@@ -410,7 +1115,7 @@
 
       if (!track || typeof track.getCapabilities !== "function") {
         document.getElementById("zoomValue").textContent =
-          "This browser does not expose camera zoom controls.";
+          "Not supported by this browser";
         return;
       }
 
@@ -419,39 +1124,35 @@
 
         if (!capabilities.zoom) {
           document.getElementById("zoomValue").textContent =
-            "Your camera does not support adjustable zoom.";
+            "Not supported by this camera";
           return;
         }
 
         cameraTrack = track;
         zoomSupported = true;
 
-        zoomMin = capabilities.zoom.min ?? 1;
-        zoomMax = capabilities.zoom.max ?? 3;
-        zoomStep = capabilities.zoom.step || 0.1;
-
         const slider = document.getElementById("zoomSlider");
+        const min = capabilities.zoom.min ?? 1;
+        const max = capabilities.zoom.max ?? 3;
+        const step = capabilities.zoom.step || 0.1;
 
-        slider.min = String(zoomMin);
-        slider.max = String(zoomMax);
-        slider.step = String(zoomStep);
+        slider.min = String(min);
+        slider.max = String(max);
+        slider.step = String(step);
 
         const settings = track.getSettings();
-        const currentZoom = settings.zoom ?? zoomMin;
+        const zoom = settings.zoom ?? min;
 
-        slider.value = String(currentZoom);
+        slider.value = String(zoom);
         slider.disabled = false;
 
         document.getElementById("zoomValue").textContent =
-          "Zoom: " + Number(currentZoom).toFixed(1) + "×";
+          "Zoom: " + Number(zoom).toFixed(1) + "×";
       } catch (error) {
         resetZoom();
-        document.getElementById("zoomValue").textContent =
-          "Could not access camera zoom.";
       }
     }
 
-    // Apply zoom while the camera is running.
     document.getElementById("zoomSlider").addEventListener(
       "input",
       async function() {
@@ -468,7 +1169,7 @@
           });
         } catch (error) {
           document.getElementById("zoomValue").textContent =
-            "The camera could not apply this zoom level.";
+            "Zoom could not be applied";
         }
       }
     );
@@ -479,8 +1180,8 @@
       hidePanels();
       resetZoom();
 
-      const startButton = document.getElementById("startButton");
-      startButton.disabled = true;
+      const button = document.getElementById("startButton");
+      button.disabled = true;
 
       setStatus("Starting camera...");
 
@@ -499,14 +1200,15 @@
 
         await setupZoom();
 
-        setStatus("Camera ready. Scan your student QR code.");
+        setStatus("Camera is ready. Scan your student QR code.");
       } catch (error) {
         setStatus(
           "Could not start camera. Allow camera access and use HTTPS. " +
-          (error.message || "")
+          (error.message || ""),
+          "error"
         );
       } finally {
-        startButton.disabled = false;
+        button.disabled = false;
       }
     }
 
@@ -531,7 +1233,7 @@
       await stopCamera();
       hidePanels();
 
-      setStatus("Checking student ID...");
+      setStatus("Verifying student information...");
 
       try {
         const result = await requestAppsScript("lookup");
@@ -540,17 +1242,22 @@
 
         if (result.checkedIn) {
           document.getElementById("activeVisit").textContent =
-            "Selected area: " + (result.area || "Not specified");
+            result.area || "Area not specified";
 
           show("exitPanel");
-          setStatus("Student is currently checked in.");
+          setStatus("Student verified. An active visit was found.", "success");
         } else {
-          document.getElementById("areaSelect").value = "";
+          document.querySelectorAll('input[name="libraryArea"]').forEach(
+            function(input) {
+              input.checked = false;
+            }
+          );
+
           show("areaPanel");
-          setStatus("Choose your library area to record entry.");
+          setStatus("Student verified. Please choose a study area.", "success");
         }
       } catch (error) {
-        setStatus(error.message);
+        setStatus(error.message, "error");
         busy = false;
 
         document.getElementById("startButton").textContent =
@@ -559,37 +1266,41 @@
     }
 
     async function confirmEntry() {
-      const area = document.getElementById("areaSelect").value;
+      const selected = document.querySelector(
+        'input[name="libraryArea"]:checked'
+      );
 
       if (!currentStudentId || !currentStudent) {
-        setStatus("Please scan your student QR code first.");
+        setStatus("Please scan your student QR code first.", "error");
         return;
       }
 
-      if (!area) {
-        setStatus("Please select a library area.");
+      if (!selected) {
+        setStatus("Please choose a library area before continuing.", "error");
         return;
       }
 
       const button = document.getElementById("entryButton");
       button.disabled = true;
-      setStatus("Recording entry...");
+
+      setStatus("Recording your library entry...");
 
       try {
         const result = await requestAppsScript("entry", {
-          area: area
+          area: selected.value
         });
 
         hidePanels();
 
         setStatus(
           result.message + " Area: " + result.area +
-          ". Time: " + result.time
+          ". Time: " + result.time,
+          "success"
         );
 
         finishAndReset();
       } catch (error) {
-        setStatus(error.message);
+        setStatus(error.message, "error");
       } finally {
         button.disabled = false;
       }
@@ -597,13 +1308,14 @@
 
     async function confirmExit() {
       if (!currentStudentId) {
-        setStatus("Please scan your student QR code first.");
+        setStatus("Please scan your student QR code first.", "error");
         return;
       }
 
       const button = document.getElementById("exitButton");
       button.disabled = true;
-      setStatus("Recording exit...");
+
+      setStatus("Recording your library exit...");
 
       try {
         const result = await requestAppsScript("exit");
@@ -612,12 +1324,13 @@
 
         setStatus(
           result.message + " Area: " + result.area +
-          ". Time: " + result.time
+          ". Time: " + result.time,
+          "success"
         );
 
         finishAndReset();
       } catch (error) {
-        setStatus(error.message);
+        setStatus(error.message, "error");
       } finally {
         button.disabled = false;
       }
@@ -630,9 +1343,10 @@
       currentStudent = null;
       busy = false;
 
-      setStatus("Cancelled. Start the scanner when ready.");
       document.getElementById("startButton").textContent =
         "Start QR Scanner";
+
+      setStatus("Action cancelled. Start the scanner when ready.");
     }
 
     function finishAndReset() {
