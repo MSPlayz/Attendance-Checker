@@ -37,6 +37,10 @@
       margin-top: 0;
     }
 
+    h3 {
+      margin-top: 0;
+    }
+
     .subtitle {
       text-align: center;
       color: #64748b;
@@ -70,6 +74,12 @@
       cursor: not-allowed;
     }
 
+    select {
+      border: 1px solid #cbd5e1;
+      background: white;
+      color: #1f2937;
+    }
+
     .secondary {
       background: #64748b;
     }
@@ -87,7 +97,7 @@
     }
 
     .hidden {
-      display: none;
+      display: none !important;
     }
 
     .student-name {
@@ -108,14 +118,27 @@
       background: #eff6ff;
       text-align: center;
       overflow-wrap: anywhere;
+      line-height: 1.5;
     }
 
     .note {
       color: #64748b;
       font-size: 13px;
       line-height: 1.5;
-      margin-top: 18px;
+      margin-top: 12px;
       text-align: center;
+    }
+
+    #zoomSlider {
+      width: 100%;
+      margin: 12px 0;
+      accent-color: #2563eb;
+    }
+
+    #zoomValue {
+      text-align: center;
+      font-weight: bold;
+      margin: 8px 0;
     }
   </style>
 </head>
@@ -123,19 +146,44 @@
 <body>
   <main class="container">
     <h1>Library Attendance</h1>
-    <p class="subtitle">Scan your student QR code to begin.</p>
+    <p class="subtitle">
+      Scan your student QR code to begin.
+    </p>
 
     <div id="reader"></div>
+
+    <!-- Camera zoom controls -->
+    <div class="panel" id="zoomPanel">
+      <h3>Camera Zoom</h3>
+      <p id="zoomValue">Zoom will be available when the camera starts.</p>
+
+      <input
+        type="range"
+        id="zoomSlider"
+        min="1"
+        max="3"
+        step="0.1"
+        value="1"
+        disabled
+      >
+
+      <p class="note">
+        Zoom depends on your camera and browser. Some desktop webcams
+        do not support zoom.
+      </p>
+    </div>
 
     <button id="startButton" onclick="startCamera()">
       Start QR Scanner
     </button>
 
+    <!-- Student information -->
     <div id="studentPanel" class="panel hidden">
       <div id="studentName" class="student-name"></div>
       <div id="studentDetails"></div>
     </div>
 
+    <!-- Area selection -->
     <div id="areaPanel" class="panel hidden">
       <h3>Choose Your Library Area</h3>
       <p>Select the area where you will stay.</p>
@@ -156,13 +204,17 @@
       </button>
     </div>
 
+    <!-- Exit confirmation -->
     <div id="exitPanel" class="panel hidden">
       <h3>Active Library Visit</h3>
       <p id="activeVisit"></p>
       <p>Are you leaving the library now?</p>
 
-      <button id="exitButton" class="exit-button"
-              onclick="confirmExit()">
+      <button
+        id="exitButton"
+        class="exit-button"
+        onclick="confirmExit()"
+      >
         Record Exit
       </button>
 
@@ -176,21 +228,25 @@
     </div>
 
     <p class="note">
-      Allow camera access when prompted. If the scanner stops,
-      select Start QR Scanner to try again.
+      Allow camera access when prompted. Use HTTPS to access the camera.
     </p>
   </main>
 
   <script>
-    // IMPORTANT: Replace this with your current Apps Script Web App URL.
-    const GAS_URL =
-      "PASTE_YOUR_DEPLOYED_WEB_APP_URL_HERE";
+    // Replace this with your deployed Google Apps Script URL ending in /exec.
+    const GAS_URL = "PASTE_YOUR_DEPLOYED_WEB_APP_URL_HERE";
 
     const scanner = new Html5Qrcode("reader");
 
     let currentStudentId = "";
     let currentStudent = null;
     let busy = false;
+
+    let cameraTrack = null;
+    let zoomSupported = false;
+    let zoomMin = 1;
+    let zoomMax = 3;
+    let zoomStep = 0.1;
 
     function setStatus(message) {
       document.getElementById("status").textContent = message;
@@ -232,18 +288,24 @@
       values.forEach(function(item) {
         const line = document.createElement("p");
         line.className = "detail";
-        line.textContent = item[0] + ": " + (item[1] || "Not provided");
+        line.textContent =
+          item[0] + ": " + (item[1] || "Not provided");
         details.appendChild(line);
       });
 
       show("studentPanel");
     }
 
-    // Uses JSONP so GitHub Pages can communicate with Apps Script.
+    // JSONP request to Google Apps Script.
     function requestAppsScript(action, extraParams = {}) {
       return new Promise(function(resolve, reject) {
-        if (GAS_URL.includes("PASTE_YOUR_DEPLOYED_WEB_APP_URL_HERE")) {
-          reject(new Error("Please set your Apps Script Web App URL."));
+        if (
+          GAS_URL.includes("PASTE_YOUR_DEPLOYED_WEB_APP_URL_HERE") ||
+          !GAS_URL
+        ) {
+          reject(new Error(
+            "Please add your deployed Apps Script Web App URL to the code."
+          ));
           return;
         }
 
@@ -260,6 +322,7 @@
 
         const script = document.createElement("script");
         let finished = false;
+        let timeout;
 
         function cleanup() {
           delete window[callbackName];
@@ -274,14 +337,15 @@
           reject(error);
         }
 
-        const timeout = setTimeout(function() {
+        timeout = setTimeout(function() {
           fail(new Error(
-            "The request timed out. Check the Web App URL and deployment access."
+            "Request timed out. Check your Web App URL and deployment access."
           ));
         }, 15000);
 
         window[callbackName] = function(result) {
           if (finished) return;
+
           finished = true;
           cleanup();
 
@@ -299,7 +363,7 @@
 
         script.onerror = function() {
           fail(new Error(
-            "Connection failed. Check the Web App URL and deployment permissions."
+            "Connection failed. Check your Apps Script URL and permissions."
           ));
         };
 
@@ -308,11 +372,115 @@
       });
     }
 
+    // Reset zoom controls whenever a camera session ends.
+    function resetZoom() {
+      cameraTrack = null;
+      zoomSupported = false;
+
+      const slider = document.getElementById("zoomSlider");
+      slider.disabled = true;
+      slider.min = "1";
+      slider.max = "3";
+      slider.step = "0.1";
+      slider.value = "1";
+
+      document.getElementById("zoomValue").textContent =
+        "Zoom will be available when the camera starts.";
+    }
+
+    // Find the live camera track and its actual zoom capabilities.
+    async function setupZoom() {
+      resetZoom();
+
+      // Allow the video element to become available.
+      await new Promise(function(resolve) {
+        setTimeout(resolve, 300);
+      });
+
+      const video = document.querySelector("#reader video");
+
+      if (!video || !video.srcObject) {
+        document.getElementById("zoomValue").textContent =
+          "Camera zoom is unavailable.";
+        return;
+      }
+
+      const track = video.srcObject.getVideoTracks()[0];
+
+      if (!track || typeof track.getCapabilities !== "function") {
+        document.getElementById("zoomValue").textContent =
+          "This browser does not expose camera zoom controls.";
+        return;
+      }
+
+      try {
+        const capabilities = track.getCapabilities();
+
+        if (!capabilities.zoom) {
+          document.getElementById("zoomValue").textContent =
+            "Your camera does not support adjustable zoom.";
+          return;
+        }
+
+        cameraTrack = track;
+        zoomSupported = true;
+
+        zoomMin = capabilities.zoom.min ?? 1;
+        zoomMax = capabilities.zoom.max ?? 3;
+        zoomStep = capabilities.zoom.step || 0.1;
+
+        const slider = document.getElementById("zoomSlider");
+
+        slider.min = String(zoomMin);
+        slider.max = String(zoomMax);
+        slider.step = String(zoomStep);
+
+        const settings = track.getSettings();
+        const currentZoom = settings.zoom ?? zoomMin;
+
+        slider.value = String(currentZoom);
+        slider.disabled = false;
+
+        document.getElementById("zoomValue").textContent =
+          "Zoom: " + Number(currentZoom).toFixed(1) + "×";
+      } catch (error) {
+        resetZoom();
+        document.getElementById("zoomValue").textContent =
+          "Could not access camera zoom.";
+      }
+    }
+
+    // Apply zoom while the camera is running.
+    document.getElementById("zoomSlider").addEventListener(
+      "input",
+      async function() {
+        const value = Number(this.value);
+
+        document.getElementById("zoomValue").textContent =
+          "Zoom: " + value.toFixed(1) + "×";
+
+        if (!cameraTrack || !zoomSupported) return;
+
+        try {
+          await cameraTrack.applyConstraints({
+            advanced: [{ zoom: value }]
+          });
+        } catch (error) {
+          document.getElementById("zoomValue").textContent =
+            "The camera could not apply this zoom level.";
+        }
+      }
+    );
+
     async function startCamera() {
       if (busy || scanner.isScanning) return;
 
       hidePanels();
-      document.getElementById("startButton").disabled = true;
+      resetZoom();
+
+      const startButton = document.getElementById("startButton");
+      startButton.disabled = true;
+
       setStatus("Starting camera...");
 
       try {
@@ -324,9 +492,11 @@
           },
           onQrScanned,
           function() {
-            // Ignore ordinary frames that do not contain a QR code.
+            // Ignore frames without a readable QR code.
           }
         );
+
+        await setupZoom();
 
         setStatus("Camera ready. Scan your student QR code.");
       } catch (error) {
@@ -335,7 +505,7 @@
           (error.message || "")
         );
       } finally {
-        document.getElementById("startButton").disabled = false;
+        startButton.disabled = false;
       }
     }
 
@@ -347,6 +517,8 @@
           console.error("Camera stop error:", error);
         }
       }
+
+      resetZoom();
     }
 
     async function onQrScanned(decodedText) {
@@ -357,10 +529,12 @@
 
       await stopCamera();
       hidePanels();
+
       setStatus("Checking student ID...");
 
       try {
         const result = await requestAppsScript("lookup");
+
         displayStudent(result.student);
 
         if (result.checkedIn) {
@@ -377,6 +551,7 @@
       } catch (error) {
         setStatus(error.message);
         busy = false;
+
         document.getElementById("startButton").textContent =
           "Try Scanning Again";
       }
@@ -395,13 +570,17 @@
         return;
       }
 
-      document.getElementById("entryButton").disabled = true;
+      const button = document.getElementById("entryButton");
+      button.disabled = true;
       setStatus("Recording entry...");
 
       try {
-        const result = await requestAppsScript("entry", { area: area });
+        const result = await requestAppsScript("entry", {
+          area: area
+        });
 
         hidePanels();
+
         setStatus(
           result.message + " Area: " + result.area +
           ". Time: " + result.time
@@ -411,7 +590,7 @@
       } catch (error) {
         setStatus(error.message);
       } finally {
-        document.getElementById("entryButton").disabled = false;
+        button.disabled = false;
       }
     }
 
@@ -421,13 +600,15 @@
         return;
       }
 
-      document.getElementById("exitButton").disabled = true;
+      const button = document.getElementById("exitButton");
+      button.disabled = true;
       setStatus("Recording exit...");
 
       try {
         const result = await requestAppsScript("exit");
 
         hidePanels();
+
         setStatus(
           result.message + " Area: " + result.area +
           ". Time: " + result.time
@@ -437,22 +618,27 @@
       } catch (error) {
         setStatus(error.message);
       } finally {
-        document.getElementById("exitButton").disabled = false;
+        button.disabled = false;
       }
     }
 
     function cancelAction() {
       hidePanels();
+
       currentStudentId = "";
       currentStudent = null;
       busy = false;
+
       setStatus("Cancelled. Start the scanner when ready.");
+      document.getElementById("startButton").textContent =
+        "Start QR Scanner";
     }
 
     function finishAndReset() {
       currentStudentId = "";
       currentStudent = null;
       busy = false;
+
       document.getElementById("startButton").textContent =
         "Scan Next Student";
     }
