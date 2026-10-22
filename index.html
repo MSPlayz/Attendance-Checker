@@ -3,526 +3,730 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>LibraryHub | Attendance System</title>
-  <meta name="theme-color" content="#183d32">
+  <title>Library QR Attendance System</title>
 
+  <!-- QR Scanner Library -->
   <script src="https://unpkg.com/html5-qrcode"></script>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
 
   <style>
     :root {
-      --green: #183d32;
-      --green-light: #285746;
-      --green-pale: #eaf1ec;
-      --gold: #c7a568;
-      --cream: #f7f5ef;
+      --green: #123c2c;
+      --green-dark: #09271d;
+      --green-light: #1c6045;
+      --gold: #d6ad60;
+      --cream: #f8f5ed;
       --white: #ffffff;
-      --ink: #24342e;
-      --muted: #718078;
-      --border: #e3e8e1;
-      --red: #b84040;
-      --shadow: 0 12px 36px rgba(24, 61, 50, 0.08);
+      --muted: #6e7d73;
+      --border: #e5e9df;
+      --shadow: 0 18px 50px rgba(13, 45, 31, 0.10);
     }
 
     * {
       box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
     }
 
     body {
-      margin: 0;
       min-height: 100vh;
-      background:
-        radial-gradient(ellipse at top left, #e8eee5 0, transparent 38%),
-        var(--cream);
-      color: var(--ink);
-      font-family: "Segoe UI", Arial, sans-serif;
-      font-size: 15px;
+      font-family: "DM Sans", sans-serif;
+      color: #19382a;
+      background: var(--cream);
+      overflow-x: hidden;
     }
 
-    button, select, input {
+    button, input {
       font: inherit;
     }
 
     button {
-      -webkit-tap-highlight-color: transparent;
+      cursor: pointer;
     }
+
+    /* BACKGROUND ART */
+
+    .background-art {
+      position: fixed;
+      inset: 0;
+      z-index: -3;
+      background:
+        linear-gradient(
+          115deg,
+          rgba(248, 245, 237, 0.97) 0%,
+          rgba(248, 245, 237, 0.90) 48%,
+          rgba(238, 229, 205, 0.75) 100%
+        ),
+        url("https://images.unsplash.com/photo-1507842217343-583bb7270b66?auto=format&fit=crop&w=2000&q=85")
+        center / cover no-repeat;
+    }
+
+    .background-art::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 12% 20%, rgba(214,173,96,.20), transparent 28%),
+        radial-gradient(circle at 88% 75%, rgba(28,96,69,.13), transparent 30%);
+    }
+
+    .orb {
+      position: fixed;
+      z-index: -2;
+      border-radius: 50%;
+      filter: blur(2px);
+      pointer-events: none;
+      animation: float 10s ease-in-out infinite;
+    }
+
+    .orb-one {
+      width: 260px;
+      height: 260px;
+      top: 18%;
+      left: -120px;
+      background: rgba(214, 173, 96, .12);
+    }
+
+    .orb-two {
+      width: 330px;
+      height: 330px;
+      right: -160px;
+      bottom: 6%;
+      background: rgba(18, 60, 44, .10);
+      animation-delay: -4s;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0) translateX(0); }
+      50% { transform: translateY(-24px) translateX(12px); }
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(22px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(214,173,96,.25); }
+      50% { box-shadow: 0 0 0 9px rgba(214,173,96,0); }
+    }
+
+    @keyframes shine {
+      0% { background-position: -200% center; }
+      100% { background-position: 200% center; }
+    }
+
+    /* HEADER */
 
     .topbar {
-      background: var(--green);
+      position: relative;
       color: white;
-      padding: 15px 22px;
-      border-bottom: 3px solid var(--gold);
+      background:
+        linear-gradient(115deg, rgba(9,39,29,.98), rgba(18,60,44,.94)),
+        url("https://images.unsplash.com/photo-1507842217343-583bb7270b66?auto=format&fit=crop&w=1600&q=80")
+        center 45% / cover;
+      padding: 22px 7%;
+      overflow: hidden;
+      box-shadow: 0 8px 30px rgba(9,39,29,.16);
     }
 
-    .topbar-inner {
-      max-width: 1050px;
+    .topbar::after {
+      content: "";
+      position: absolute;
+      width: 360px;
+      height: 360px;
+      border: 1px solid rgba(214,173,96,.23);
+      border-radius: 50%;
+      right: -100px;
+      top: -220px;
+      box-shadow:
+        0 0 0 28px rgba(214,173,96,.035),
+        0 0 0 58px rgba(214,173,96,.025);
+      pointer-events: none;
+    }
+
+    .nav-inner {
+      max-width: 1180px;
       margin: auto;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 15px;
+      gap: 20px;
+      position: relative;
+      z-index: 1;
     }
 
     .brand {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 14px;
     }
 
     .brand-icon {
+      width: 52px;
+      height: 52px;
+      border: 1px solid rgba(214,173,96,.6);
+      border-radius: 15px;
       display: grid;
       place-items: center;
-      width: 43px;
-      height: 43px;
-      flex-shrink: 0;
-      background: rgba(255,255,255,.12);
-      border: 1px solid rgba(255,255,255,.2);
-      border-radius: 12px;
-      font-size: 24px;
+      color: var(--gold);
+      font-size: 27px;
+      background: rgba(255,255,255,.06);
+      box-shadow: inset 0 0 18px rgba(214,173,96,.07);
     }
 
     .brand-name {
-      font-size: 18px;
-      font-weight: 750;
+      font-family: "Playfair Display", serif;
+      font-size: 21px;
+      font-weight: 700;
       letter-spacing: .2px;
     }
 
     .brand-subtitle {
-      color: #d3dfd7;
+      margin-top: 4px;
+      color: #d6e2d9;
       font-size: 11px;
-      margin-top: 3px;
-      letter-spacing: 1.5px;
+      letter-spacing: 2px;
       text-transform: uppercase;
     }
 
-    .topbar-label {
-      color: #e4eae5;
+    .header-tag {
+      border: 1px solid rgba(214,173,96,.48);
+      color: #f1d9a5;
+      background: rgba(255,255,255,.05);
+      padding: 9px 14px;
+      border-radius: 100px;
       font-size: 12px;
-      text-align: right;
+      letter-spacing: .4px;
+      white-space: nowrap;
     }
 
-    .page {
-      max-width: 1050px;
-      margin: 0 auto;
-      padding: 35px 20px 45px;
-    }
+    /* HERO */
 
     .hero {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 53px 24px 34px;
       display: grid;
-      grid-template-columns: 1fr auto;
+      grid-template-columns: 1.2fr .8fr;
+      gap: 35px;
       align-items: center;
-      gap: 24px;
-      margin-bottom: 26px;
+      animation: fadeUp .7s ease both;
     }
 
     .eyebrow {
-      color: #647d6b;
-      text-transform: uppercase;
-      letter-spacing: 2px;
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      color: #9a742f;
+      font-weight: 700;
       font-size: 11px;
-      font-weight: 800;
-      margin-bottom: 9px;
+      letter-spacing: 2.2px;
+      text-transform: uppercase;
+      margin-bottom: 17px;
     }
 
-    h1 {
-      color: var(--green);
-      font-family: Georgia, "Times New Roman", serif;
-      font-size: clamp(29px, 5vw, 43px);
-      font-weight: 600;
+    .eyebrow::before {
+      content: "";
+      width: 28px;
+      height: 2px;
+      background: var(--gold);
+    }
+
+    .hero h1 {
+      max-width: 680px;
+      font-family: "Playfair Display", serif;
+      font-size: clamp(34px, 4.6vw, 57px);
       line-height: 1.12;
-      margin: 0;
+      letter-spacing: -1.3px;
+      color: var(--green-dark);
     }
 
-    .hero p {
-      max-width: 540px;
-      color: var(--muted);
-      line-height: 1.7;
-      margin: 12px 0 0;
+    .hero h1 span {
+      color: #a47b35;
+      font-style: italic;
     }
 
-    .hero-decoration {
+    .hero-description {
+      max-width: 570px;
+      margin-top: 18px;
+      color: #637267;
+      line-height: 1.8;
+      font-size: 15px;
+    }
+
+    .hero-visual {
+      min-height: 190px;
+      position: relative;
+      border-radius: 24px;
+      overflow: hidden;
+      background:
+        linear-gradient(90deg, rgba(9,39,29,.72), rgba(9,39,29,.12)),
+        url("https://images.unsplash.com/photo-1521587760476-6c12a4b040da?auto=format&fit=crop&w=1000&q=85")
+        center / cover;
+      box-shadow: var(--shadow);
+      border: 4px solid rgba(255,255,255,.8);
+      display: flex;
+      align-items: flex-end;
+      padding: 24px;
+      transition: transform .35s ease, box-shadow .35s ease;
+    }
+
+    .hero-visual:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 24px 55px rgba(13,45,31,.18);
+    }
+
+    .visual-caption {
+      color: white;
+      position: relative;
+      z-index: 1;
+    }
+
+    .visual-caption strong {
+      display: block;
+      font-family: "Playfair Display", serif;
+      font-size: 23px;
+    }
+
+    .visual-caption span {
+      display: block;
+      font-size: 12px;
+      color: #e8e8d8;
+      margin-top: 6px;
+    }
+
+    /* MAIN LAYOUT */
+
+    .main {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 8px 24px 65px;
       display: grid;
-      grid-template-columns: repeat(4, 18px);
-      align-items: end;
-      gap: 5px;
-      height: 72px;
-      padding: 0 10px 9px;
-      border-bottom: 4px solid #9b8052;
-      opacity: .85;
-    }
-
-    .book {
-      border-radius: 3px 3px 1px 1px;
-      height: 48px;
-      background: #285746;
-      border-left: 3px solid rgba(255,255,255,.25);
-    }
-
-    .book:nth-child(2) {
-      height: 61px;
-      background: #b68e54;
-    }
-
-    .book:nth-child(3) {
-      height: 53px;
-      background: #9e6250;
-    }
-
-    .book:nth-child(4) {
-      height: 42px;
-      background: #687f6a;
-    }
-
-    .layout {
-      display: grid;
-      grid-template-columns: minmax(0, 1.08fr) minmax(0, .92fr);
-      gap: 22px;
+      grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr);
+      gap: 25px;
       align-items: start;
     }
 
-    .card {
-      background: var(--white);
-      border: 1px solid var(--border);
-      border-radius: 17px;
+    .panel {
+      background: rgba(255,255,255,.92);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255,255,255,.9);
+      border-radius: 23px;
       box-shadow: var(--shadow);
       overflow: hidden;
+      animation: fadeUp .75s ease both;
     }
 
-    .card-header {
-      padding: 20px 22px;
-      border-bottom: 1px solid var(--border);
+    .panel:nth-child(2) {
+      animation-delay: .12s;
+    }
+
+    .panel-header {
+      padding: 23px 25px;
+      border-bottom: 1px solid #edf0e9;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 12px;
     }
 
-    .card-heading {
+    .panel-heading {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 13px;
     }
 
-    .heading-icon {
+    .panel-icon {
+      width: 43px;
+      height: 43px;
+      flex-shrink: 0;
+      border-radius: 13px;
       display: grid;
       place-items: center;
-      width: 39px;
-      height: 39px;
-      flex-shrink: 0;
-      border-radius: 11px;
-      background: var(--green-pale);
       color: var(--green);
-      font-size: 19px;
+      background: #edf3e9;
+      font-size: 21px;
     }
 
-    h2 {
-      font-size: 16px;
-      margin: 0;
-      color: var(--green);
+    .panel-header h2 {
+      font-family: "Playfair Display", serif;
+      font-size: 20px;
+      color: var(--green-dark);
     }
 
-    .card-subheading {
+    .panel-header p {
+      color: #879287;
       font-size: 12px;
-      color: var(--muted);
       margin-top: 4px;
     }
 
     .live-pill {
-      display: inline-flex;
+      display: flex;
       align-items: center;
       gap: 7px;
-      white-space: nowrap;
-      border-radius: 30px;
-      padding: 7px 10px;
-      background: #edf5ed;
-      color: #386b48;
+      background: #edf7ed;
+      color: #2c764b;
+      border-radius: 100px;
+      padding: 8px 11px;
       font-size: 11px;
-      font-weight: 750;
+      font-weight: 700;
+      white-space: nowrap;
     }
 
     .live-dot {
       width: 7px;
       height: 7px;
       border-radius: 50%;
-      background: #5b9b68;
+      background: #40a568;
+      animation: pulse 2s infinite;
     }
 
-    .card-body {
-      padding: 20px 22px 22px;
+    .panel-body {
+      padding: 24px;
+    }
+
+    /* CAMERA */
+
+    .camera-frame {
+      position: relative;
+      padding: 10px;
+      border-radius: 19px;
+      background: linear-gradient(135deg, #e5ecdf, #f5f2e7);
+      border: 1px solid #e3e9de;
     }
 
     #reader {
       width: 100%;
-      min-height: 220px;
-      border: 1px solid var(--border) !important;
-      border-radius: 13px;
+      min-height: 290px;
       overflow: hidden;
-      background: #f7f8f5;
+      border: 0 !important;
+      border-radius: 13px;
+      background: #102b20;
     }
 
     #reader video {
-      width: 100% !important;
-      border-radius: 12px;
+      border-radius: 13px;
       object-fit: cover;
     }
 
     #reader img {
-      max-width: 100%;
+      border-radius: 8px;
     }
 
-    #reader__dashboard_section_csr button,
-    #reader button {
-      border-radius: 7px;
-      padding: 8px 12px;
-      cursor: pointer;
+    #reader__scan_region {
+      min-height: 245px;
     }
 
-    #reader__dashboard_section_swaplink {
-      color: var(--green);
+    #reader__dashboard {
+      padding: 10px 5px 2px !important;
     }
 
-    .zoom-box {
-      margin-top: 17px;
-      padding: 15px;
-      background: #f7f8f5;
-      border: 1px solid var(--border);
-      border-radius: 12px;
+    #reader__dashboard button,
+    #reader__dashboard select {
+      border: 1px solid #dbe3d7 !important;
+      border-radius: 8px !important;
+      padding: 8px 10px !important;
+      margin: 4px !important;
+      background: white !important;
+      color: var(--green) !important;
     }
 
-    .zoom-top {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-    }
-
-    .zoom-label {
-      color: var(--green);
-      font-size: 13px;
-      font-weight: 750;
-    }
-
-    #zoomValue {
-      color: #647d6b;
-      font-size: 12px;
-      font-weight: 700;
-    }
-
-    #zoomSlider {
-      display: block;
-      width: 100%;
-      margin: 15px 0 7px;
-      accent-color: var(--green);
-      cursor: pointer;
-    }
-
-    #zoomSlider:disabled {
-      cursor: not-allowed;
-      opacity: .5;
-    }
-
-    .zoom-help {
-      color: var(--muted);
-      font-size: 11px;
-      line-height: 1.5;
-    }
-
-    .primary-btn,
-    .secondary-btn,
-    .exit-btn {
-      width: 100%;
-      min-height: 47px;
-      padding: 12px 16px;
-      border-radius: 10px;
-      font-size: 14px;
-      font-weight: 750;
-      cursor: pointer;
-      transition: background .18s, transform .18s;
-    }
-
-    .primary-btn {
-      margin-top: 17px;
-      border: 1px solid var(--green);
-      background: var(--green);
+    #reader__status_span {
       color: white;
     }
 
-    .primary-btn:hover:not(:disabled) {
-      background: var(--green-light);
-    }
-
-    .secondary-btn {
-      border: 1px solid var(--border);
-      background: white;
-      color: var(--green);
-      margin-top: 9px;
-    }
-
-    .secondary-btn:hover:not(:disabled) {
-      background: var(--green-pale);
-    }
-
-    .exit-btn {
-      margin-top: 17px;
-      border: 1px solid var(--red);
-      background: var(--red);
-      color: white;
-    }
-
-    button:disabled {
-      opacity: .55;
-      cursor: not-allowed;
-    }
-
-    .status {
+    .camera-tip {
+      margin-top: 14px;
       display: flex;
       align-items: flex-start;
       gap: 10px;
-      margin-top: 16px;
-      padding: 13px 14px;
-      background: #f4f6f2;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      color: #53675b;
       font-size: 12px;
-      line-height: 1.6;
-      overflow-wrap: anywhere;
+      line-height: 1.65;
+      color: #788579;
     }
 
-    .status-icon {
-      flex-shrink: 0;
-      font-size: 15px;
+    .camera-tip span {
+      font-size: 17px;
     }
 
-    .status.error {
-      color: #943b35;
-      background: #fff3f1;
-      border-color: #f1d7d2;
-    }
-
-    .status.success {
-      color: #286444;
-      background: #eff8f0;
-      border-color: #d4e9d7;
-    }
-
-    .right-column {
+    .camera-controls {
+      margin-top: 17px;
       display: flex;
       flex-direction: column;
-      gap: 20px;
+      gap: 12px;
+    }
+
+    .zoom-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 12px;
+      color: #647267;
+    }
+
+    .zoom-row label {
+      white-space: nowrap;
+    }
+
+    .zoom-row input {
+      flex: 1;
+      accent-color: var(--green-light);
       min-width: 0;
     }
 
-    .welcome-panel {
-      background: var(--green);
-      color: white;
-      padding: 22px;
-      border-radius: 16px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .welcome-panel::after {
-      content: "❧";
-      position: absolute;
-      right: 8px;
-      bottom: -45px;
-      color: rgba(255,255,255,.08);
-      font-size: 130px;
-      line-height: 1;
-      pointer-events: none;
-    }
-
-    .welcome-panel h2 {
-      color: white;
-      font-family: Georgia, "Times New Roman", serif;
-      font-size: 23px;
-      font-weight: 500;
-      position: relative;
-      z-index: 1;
-    }
-
-    .welcome-panel p {
-      max-width: 330px;
-      color: #d7e2da;
-      font-size: 13px;
-      line-height: 1.7;
-      margin: 10px 0 0;
-      position: relative;
-      z-index: 1;
-    }
-
-    .welcome-rule {
-      width: 42px;
-      height: 3px;
-      margin-top: 15px;
-      background: var(--gold);
-    }
-
-    .panel-body {
-      padding: 20px;
-    }
-
-    .student-name {
-      font-family: Georgia, "Times New Roman", serif;
-      font-size: 24px;
-      line-height: 1.3;
+    .zoom-value {
+      min-width: 35px;
+      text-align: right;
+      font-weight: 700;
       color: var(--green);
-      overflow-wrap: anywhere;
-      margin: 0 0 5px;
     }
 
-    .student-caption {
-      color: var(--muted);
-      font-size: 12px;
-      margin-bottom: 18px;
-    }
-
-    .details-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
+    .button-row {
+      display: flex;
       gap: 10px;
     }
 
-    .detail-item {
-      min-width: 0;
-      background: #f7f8f5;
-      border: 1px solid #edf0e9;
-      padding: 11px;
-      border-radius: 9px;
+    .btn {
+      border: 0;
+      border-radius: 11px;
+      padding: 13px 16px;
+      font-weight: 700;
+      font-size: 13px;
+      transition: transform .2s ease, box-shadow .2s ease, background .2s ease;
+    }
+
+    .btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+    }
+
+    .btn:active:not(:disabled) {
+      transform: scale(.98);
+    }
+
+    .btn:disabled {
+      opacity: .45;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      color: white;
+      background: linear-gradient(120deg, var(--green), var(--green-light), var(--green));
+      background-size: 200% auto;
+      box-shadow: 0 7px 18px rgba(18,60,44,.16);
+      animation: shine 7s linear infinite;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      box-shadow: 0 10px 23px rgba(18,60,44,.25);
+    }
+
+    .btn-secondary {
+      background: #edf2e9;
+      color: var(--green);
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      background: #e2ebde;
+    }
+
+    .btn-danger {
+      background: #fff0ec;
+      color: #a64130;
+    }
+
+    .btn-full {
+      width: 100%;
+    }
+
+    /* STATUS */
+
+    .status-box {
+      display: none;
+      margin-top: 18px;
+      padding: 13px 15px;
+      border-radius: 12px;
+      font-size: 13px;
+      line-height: 1.6;
+      animation: fadeUp .25s ease both;
+      overflow-wrap: anywhere;
+    }
+
+    .status-box.show {
+      display: block;
+    }
+
+    .status-info {
+      background: #eef4fa;
+      color: #315b7d;
+      border: 1px solid #dbe8f4;
+    }
+
+    .status-success {
+      background: #eaf6ed;
+      color: #28653b;
+      border: 1px solid #d3ead8;
+    }
+
+    .status-error {
+      background: #fff0ed;
+      color: #a23d2e;
+      border: 1px solid #f4d8d2;
+    }
+
+    .status-warning {
+      background: #fff7e7;
+      color: #8b6828;
+      border: 1px solid #f0e2c1;
+    }
+
+    /* STUDENT PROFILE */
+
+    .profile-empty {
+      text-align: center;
+      padding: 31px 16px 34px;
+      color: #8a968b;
+    }
+
+    .empty-illustration {
+      width: 94px;
+      height: 94px;
+      margin: 0 auto 18px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background:
+        radial-gradient(circle, #fff 35%, #edf2e8 36%, #e6eddf 100%);
+      font-size: 38px;
+      box-shadow: 0 8px 25px rgba(18,60,44,.07);
+    }
+
+    .profile-empty h3 {
+      font-family: "Playfair Display", serif;
+      font-size: 19px;
+      color: #43594a;
+      margin-bottom: 7px;
+    }
+
+    .profile-empty p {
+      font-size: 12px;
+      line-height: 1.7;
+      max-width: 255px;
+      margin: auto;
+    }
+
+    #studentProfile {
+      display: none;
+    }
+
+    #studentProfile.visible {
+      display: block;
+      animation: fadeUp .35s ease both;
+    }
+
+    .profile-banner {
+      position: relative;
+      padding: 23px;
+      color: white;
+      background:
+        linear-gradient(120deg, rgba(9,39,29,.96), rgba(28,96,69,.90)),
+        url("https://images.unsplash.com/photo-1507842217343-583bb7270b66?auto=format&fit=crop&w=900&q=75")
+        center / cover;
+      overflow: hidden;
+    }
+
+    .profile-banner::after {
+      content: "✦";
+      position: absolute;
+      right: 20px;
+      top: 2px;
+      font-size: 100px;
+      line-height: 1;
+      color: rgba(214,173,96,.12);
+      transform: rotate(15deg);
+    }
+
+    .student-label {
+      color: #d6bd83;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 10px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .student-name {
+      font-family: "Playfair Display", serif;
+      font-size: 25px;
+      line-height: 1.25;
+      position: relative;
+      z-index: 1;
+      overflow-wrap: anywhere;
+    }
+
+    .student-id {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 6px 10px;
+      border-radius: 7px;
+      background: rgba(255,255,255,.12);
+      border: 1px solid rgba(255,255,255,.13);
+      color: #e8eadf;
+      font-size: 12px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .profile-details {
+      padding: 22px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 19px 14px;
     }
 
     .detail-label {
-      display: block;
-      color: var(--muted);
+      color: #8b968b;
+      font-size: 10px;
+      letter-spacing: 1.1px;
       text-transform: uppercase;
-      letter-spacing: .8px;
-      font-size: 9px;
-      font-weight: 800;
       margin-bottom: 6px;
     }
 
     .detail-value {
-      color: var(--ink);
+      color: #294433;
       font-size: 13px;
-      font-weight: 650;
+      font-weight: 700;
       overflow-wrap: anywhere;
+    }
+
+    .area-section {
+      padding: 0 22px 22px;
     }
 
     .section-label {
       display: block;
-      color: var(--green);
-      font-weight: 750;
-      font-size: 13px;
-      margin-bottom: 10px;
-    }
-
-    .area-intro {
-      color: var(--muted);
       font-size: 12px;
-      line-height: 1.6;
-      margin: 0 0 15px;
+      font-weight: 700;
+      color: #4b5f50;
+      margin-bottom: 12px;
     }
 
     .area-options {
@@ -534,545 +738,539 @@
       display: flex;
       align-items: center;
       gap: 12px;
+      border: 1px solid #e4e9e0;
+      border-radius: 12px;
       padding: 13px;
-      border: 1px solid var(--border);
-      border-radius: 11px;
       cursor: pointer;
-      transition: border-color .15s, background .15s;
+      transition: all .2s ease;
+      background: #fff;
     }
 
     .area-option:hover {
-      border-color: #8ca695;
-      background: #f8faf7;
+      border-color: #a9c1a8;
+      background: #f7faf5;
+      transform: translateX(3px);
     }
 
     .area-option:has(input:checked) {
-      border-color: var(--green);
-      background: #edf4ee;
-      box-shadow: inset 0 0 0 1px var(--green);
+      border-color: var(--green-light);
+      background: #eff6ec;
+      box-shadow: 0 0 0 2px rgba(28,96,69,.07);
     }
 
     .area-option input {
+      accent-color: var(--green-light);
       width: 16px;
       height: 16px;
-      accent-color: var(--green);
       flex-shrink: 0;
     }
 
     .area-symbol {
+      width: 37px;
+      height: 37px;
       display: grid;
       place-items: center;
-      width: 38px;
-      height: 38px;
+      border-radius: 10px;
+      background: #edf2e8;
+      font-size: 18px;
       flex-shrink: 0;
-      border-radius: 9px;
-      background: var(--green-pale);
-      font-size: 19px;
     }
 
-    .area-title {
-      color: var(--green);
-      font-size: 13px;
-      font-weight: 750;
+    .area-text strong {
+      display: block;
+      font-size: 12px;
+      color: #294433;
     }
 
-    .area-description {
-      color: var(--muted);
-      font-size: 11px;
+    .area-text small {
+      display: block;
       margin-top: 4px;
-      line-height: 1.45;
+      font-size: 11px;
+      color: #849085;
+    }
+
+    .profile-actions {
+      padding: 0 22px 23px;
+    }
+
+    #exitSection {
+      display: none;
+      padding: 0 22px 23px;
+    }
+
+    #exitSection.visible {
+      display: block;
+      animation: fadeUp .3s ease both;
     }
 
     .active-visit {
       display: flex;
-      align-items: center;
-      gap: 12px;
-      background: #edf5ed;
-      border: 1px solid #dbe9dc;
+      align-items: flex-start;
+      gap: 10px;
+      border: 1px solid #d6ead9;
+      background: #edf8ef;
+      color: #2d6c3d;
+      border-radius: 12px;
       padding: 14px;
-      border-radius: 11px;
-      margin-top: 15px;
+      margin-bottom: 13px;
+      font-size: 12px;
+      line-height: 1.65;
     }
 
-    .active-visit-icon {
-      display: grid;
-      place-items: center;
-      width: 40px;
-      height: 40px;
-      flex-shrink: 0;
-      background: white;
-      border-radius: 10px;
-      font-size: 20px;
+    .active-visit strong {
+      display: block;
+      margin-bottom: 2px;
     }
 
-    .active-visit-label {
-      color: #5b7763;
-      font-size: 10px;
-      text-transform: uppercase;
-      letter-spacing: .8px;
-      font-weight: 800;
-    }
-
-    .active-visit-area {
-      color: var(--green);
-      font-size: 14px;
-      font-weight: 750;
-      margin-top: 5px;
-    }
-
-    .privacy-note {
-      color: var(--muted);
-      font-size: 11px;
-      line-height: 1.7;
-      padding: 0 3px;
-    }
+    /* FOOTER */
 
     .footer {
+      padding: 24px;
       text-align: center;
-      color: #879187;
+      background: rgba(9,39,29,.97);
+      color: #d7e0d7;
       font-size: 11px;
-      line-height: 1.7;
-      padding-top: 27px;
+      letter-spacing: .3px;
     }
 
-    .footer span {
-      color: #567360;
+    .footer strong {
+      color: #e5c57f;
+      font-weight: 700;
     }
 
-    @media (max-width: 760px) {
-      .page {
-        padding: 25px 14px 35px;
+    .footer-note {
+      margin-top: 7px;
+      color: #9db0a1;
+      font-size: 10px;
+    }
+
+    /* RESPONSIVE */
+
+    @media (max-width: 850px) {
+      .hero {
+        grid-template-columns: 1fr;
+        padding-top: 40px;
       }
 
-      .layout {
+      .hero-visual {
+        min-height: 170px;
+      }
+
+      .main {
         grid-template-columns: 1fr;
+        max-width: 650px;
       }
 
       .hero {
-        grid-template-columns: 1fr;
-      }
-
-      .hero-decoration {
-        display: none;
-      }
-
-      .topbar {
-        padding: 13px 15px;
-      }
-
-      .topbar-label {
-        font-size: 10px;
-      }
-
-      .card-header {
-        padding: 17px;
-      }
-
-      .card-body,
-      .panel-body {
-        padding: 17px;
-      }
-
-      .welcome-panel {
-        padding: 20px;
+        max-width: 650px;
       }
     }
 
-    @media (max-width: 380px) {
+    @media (max-width: 520px) {
+      .topbar {
+        padding: 16px 18px;
+      }
+
+      .brand-icon {
+        width: 44px;
+        height: 44px;
+        font-size: 23px;
+      }
+
       .brand-name {
-        font-size: 15px;
+        font-size: 17px;
       }
 
       .brand-subtitle {
         font-size: 9px;
-        letter-spacing: 1px;
+        letter-spacing: 1.3px;
       }
 
-      .topbar-label {
+      .header-tag {
         display: none;
       }
 
-      .details-grid {
-        grid-template-columns: 1fr;
+      .hero {
+        padding: 34px 17px 25px;
+        gap: 22px;
+      }
+
+      .hero h1 {
+        font-size: 36px;
+      }
+
+      .hero-description {
+        font-size: 13px;
+      }
+
+      .hero-visual {
+        min-height: 145px;
+        padding: 18px;
+      }
+
+      .main {
+        padding: 0 13px 40px;
+        gap: 18px;
+      }
+
+      .panel {
+        border-radius: 18px;
+      }
+
+      .panel-header {
+        padding: 17px;
+      }
+
+      .panel-header h2 {
+        font-size: 18px;
+      }
+
+      .panel-body {
+        padding: 17px;
       }
 
       .live-pill {
+        padding: 7px 8px;
         font-size: 10px;
-        padding: 6px 8px;
+      }
+
+      #reader {
+        min-height: 250px;
+      }
+
+      .profile-banner {
+        padding: 20px;
+      }
+
+      .profile-details {
+        padding: 18px;
+      }
+
+      .area-section {
+        padding: 0 18px 18px;
+      }
+
+      .profile-actions,
+      #exitSection {
+        padding-left: 18px;
+        padding-right: 18px;
+      }
+
+      .button-row .btn {
+        padding: 12px 10px;
+        font-size: 12px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: .01ms !important;
       }
     }
   </style>
 </head>
 
 <body>
+  <div class="background-art"></div>
+  <div class="orb orb-one"></div>
+  <div class="orb orb-two"></div>
+
+  <!-- HEADER -->
   <header class="topbar">
-    <div class="topbar-inner">
+    <div class="nav-inner">
       <div class="brand">
-        <div class="brand-icon" aria-hidden="true">📚</div>
+        <div class="brand-icon">▤</div>
         <div>
-          <div class="brand-name">LibraryHub</div>
-          <div class="brand-subtitle">Library Attendance System</div>
+          <div class="brand-name">Library Attendance</div>
+          <div class="brand-subtitle">Smart QR Monitoring System</div>
         </div>
       </div>
-      <div class="topbar-label">STUDENT SERVICES<br>ATTENDANCE PORTAL</div>
+
+      <div class="header-tag">✦ Digital Library Services</div>
     </div>
   </header>
 
-  <main class="page">
-    <section class="hero">
-      <div>
-        <div class="eyebrow">Welcome to the library</div>
-        <h1>Your space to learn<br>and discover.</h1>
-        <p>
-          Scan your student QR code to record your visit.
-          Select your preferred study area and enjoy your time in the library.
-        </p>
+  <!-- INTRODUCTION -->
+  <section class="hero">
+    <div>
+      <div class="eyebrow">Welcome to the Library</div>
+      <h1>Your space to learn.<br><span>Your visit, recorded.</span></h1>
+      <p class="hero-description">
+        Scan your student QR code to record your library visit.
+        Choose your preferred library area and remember to check out
+        when you leave.
+      </p>
+    </div>
+
+    <div class="hero-visual">
+      <div class="visual-caption">
+        <strong>A quieter place to grow.</strong>
+        <span>Learn · Read · Discover</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- MAIN CONTENT -->
+  <main class="main">
+
+    <!-- SCANNER PANEL -->
+    <section class="panel">
+      <div class="panel-header">
+        <div class="panel-heading">
+          <div class="panel-icon">▦</div>
+          <div>
+            <h2>QR Code Scanner</h2>
+            <p>Scan your student identification QR</p>
+          </div>
+        </div>
+
+        <div class="live-pill">
+          <span class="live-dot"></span>
+          Scanner
+        </div>
       </div>
 
-      <div class="hero-decoration" aria-hidden="true">
-        <div class="book"></div>
-        <div class="book"></div>
-        <div class="book"></div>
-        <div class="book"></div>
+      <div class="panel-body">
+        <div class="camera-frame">
+          <div id="reader"></div>
+        </div>
+
+        <div class="camera-tip">
+          <span>💡</span>
+          <p>
+            Place your QR code inside the camera view. Use good lighting
+            and keep your student ID steady for a faster scan.
+          </p>
+        </div>
+
+        <div class="camera-controls">
+          <div class="zoom-row">
+            <label for="zoomSlider">Camera zoom</label>
+            <input id="zoomSlider" type="range" min="1" max="3" step="0.1" value="1">
+            <span class="zoom-value" id="zoomValue">1.0×</span>
+          </div>
+
+          <div class="button-row">
+            <button class="btn btn-primary btn-full" id="startBtn" type="button">
+              Start Scanner
+            </button>
+            <button class="btn btn-secondary btn-full" id="stopBtn" type="button" disabled>
+              Stop Camera
+            </button>
+          </div>
+        </div>
+
+        <div id="scannerStatus" class="status-box" role="status" aria-live="polite"></div>
       </div>
     </section>
 
-    <div class="layout">
-      <!-- LEFT: SCANNER -->
-      <section class="card">
-        <div class="card-header">
-          <div class="card-heading">
-            <div class="heading-icon">▦</div>
+    <!-- STUDENT PANEL -->
+    <section class="panel">
+      <div class="panel-header">
+        <div class="panel-heading">
+          <div class="panel-icon">♙</div>
+          <div>
+            <h2>Student Information</h2>
+            <p>Attendance and visit details</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel-body" style="padding-bottom: 0;">
+        <div class="profile-empty" id="emptyProfile">
+          <div class="empty-illustration">📚</div>
+          <h3>Ready for your scan?</h3>
+          <p>Your student information will appear here after your QR code is successfully scanned.</p>
+        </div>
+
+        <div id="studentProfile">
+          <div class="profile-banner">
+            <div class="student-label">Verified student</div>
+            <div class="student-name" id="studentName">Student Name</div>
+            <div class="student-id" id="studentId">Student ID</div>
+          </div>
+
+          <div class="profile-details">
             <div>
-              <h2>QR Code Scanner</h2>
-              <div class="card-subheading">Scan your student ID</div>
-            </div>
-          </div>
-          <div class="live-pill">
-            <span class="live-dot"></span>
-            Attendance
-          </div>
-        </div>
-
-        <div class="card-body">
-          <div id="reader"></div>
-
-          <div class="zoom-box">
-            <div class="zoom-top">
-              <span class="zoom-label">⌕ Camera Zoom</span>
-              <span id="zoomValue">Not available yet</span>
+              <div class="detail-label">Section</div>
+              <div class="detail-value" id="studentSection">—</div>
             </div>
 
-            <input
-              type="range"
-              id="zoomSlider"
-              min="1"
-              max="3"
-              step="0.1"
-              value="1"
-              disabled
-              aria-label="Camera zoom"
-            >
+            <div>
+              <div class="detail-label">Gender</div>
+              <div class="detail-value" id="studentGender">—</div>
+            </div>
 
-            <div class="zoom-help">
-              Adjust the camera zoom if your device supports it.
+            <div>
+              <div class="detail-label">Visit status</div>
+              <div class="detail-value" id="visitStatus">Not checked in</div>
+            </div>
+
+            <div>
+              <div class="detail-label">Library area</div>
+              <div class="detail-value" id="currentArea">Not selected</div>
             </div>
           </div>
 
-          <button id="startButton" class="primary-btn" onclick="startCamera()">
-            Start QR Scanner
-          </button>
-
-          <div id="status" class="status" role="status" aria-live="polite">
-            <span class="status-icon" id="statusIcon">●</span>
-            <span id="statusText">Ready to scan. Start the camera when you're ready.</span>
-          </div>
-        </div>
-      </section>
-
-      <!-- RIGHT: STUDENT DETAILS AND ACTIONS -->
-      <div class="right-column">
-        <section class="welcome-panel">
-          <h2>A welcoming place<br>for every learner.</h2>
-          <div class="welcome-rule"></div>
-          <p>
-            Please scan your registered student QR code.
-            Your attendance will be recorded securely in the library log.
-          </p>
-        </section>
-
-        <section id="studentPanel" class="card hidden">
-          <div class="card-header">
-            <div class="card-heading">
-              <div class="heading-icon">♙</div>
-              <div>
-                <h2>Student Information</h2>
-                <div class="card-subheading">Registered student profile</div>
-              </div>
-            </div>
-          </div>
-          <div class="panel-body">
-            <div id="studentName" class="student-name"></div>
-            <div class="student-caption">Verified student record</div>
-            <div id="studentDetails" class="details-grid"></div>
-          </div>
-        </section>
-
-        <section id="areaPanel" class="card hidden">
-          <div class="card-header">
-            <div class="card-heading">
-              <div class="heading-icon">⌂</div>
-              <div>
-                <h2>Choose Your Study Area</h2>
-                <div class="card-subheading">Where will you stay today?</div>
-              </div>
-            </div>
-          </div>
-
-          <div class="panel-body">
-            <p class="area-intro">
-              Select one area before confirming your library entry.
-            </p>
+          <div class="area-section" id="areaSection">
+            <label class="section-label">Choose your library area</label>
 
             <div class="area-options">
               <label class="area-option">
-                <input type="radio" name="libraryArea"
-                       value="Interactive Area">
+                <input type="radio" name="libraryArea" value="Interactive Area">
                 <span class="area-symbol">💻</span>
-                <span>
-                  <span class="area-title">Interactive Area</span>
-                  <span class="area-description">
-                    Digital resources and interactive learning
-                  </span>
+                <span class="area-text">
+                  <strong>Interactive Area</strong>
+                  <small>For digital learning and computer use</small>
                 </span>
               </label>
 
               <label class="area-option">
-                <input type="radio" name="libraryArea"
-                       value="Reading Area">
+                <input type="radio" name="libraryArea" value="Reading Area">
                 <span class="area-symbol">📖</span>
-                <span>
-                  <span class="area-title">Reading Area</span>
-                  <span class="area-description">
-                    Quiet reading, studying, and individual work
-                  </span>
+                <span class="area-text">
+                  <strong>Reading Area</strong>
+                  <small>For individual reading and study</small>
                 </span>
               </label>
 
               <label class="area-option">
-                <input type="radio" name="libraryArea"
-                       value="Discussion Room">
+                <input type="radio" name="libraryArea" value="Discussion Room">
                 <span class="area-symbol">👥</span>
-                <span>
-                  <span class="area-title">Discussion Room</span>
-                  <span class="area-description">
-                    Group study and collaborative discussions
-                  </span>
+                <span class="area-text">
+                  <strong>Discussion Room</strong>
+                  <small>For group work and collaboration</small>
                 </span>
               </label>
             </div>
+          </div>
 
-            <button id="entryButton" class="primary-btn" onclick="confirmEntry()">
+          <div class="profile-actions" id="entrySection">
+            <button class="btn btn-primary btn-full" id="entryBtn" type="button" disabled>
               Confirm Library Entry
             </button>
-
-            <button class="secondary-btn" onclick="cancelAction()">
-              Cancel
-            </button>
-          </div>
-        </section>
-
-        <section id="exitPanel" class="card hidden">
-          <div class="card-header">
-            <div class="card-heading">
-              <div class="heading-icon">↗</div>
-              <div>
-                <h2>Active Library Visit</h2>
-                <div class="card-subheading">Your current attendance session</div>
-              </div>
-            </div>
           </div>
 
-          <div class="panel-body">
-            <p class="area-intro">
-              You already have an active library visit.
-            </p>
-
+          <div id="exitSection">
             <div class="active-visit">
-              <div class="active-visit-icon">📍</div>
+              <span>✓</span>
               <div>
-                <div class="active-visit-label">Selected study area</div>
-                <div id="activeVisit" class="active-visit-area"></div>
+                <strong>Active library visit</strong>
+                Your entry is recorded. Check out when you are ready to leave.
               </div>
             </div>
-
-            <button id="exitButton" class="exit-btn" onclick="confirmExit()">
+            <button class="btn btn-danger btn-full" id="exitBtn" type="button">
               Record Library Exit
             </button>
-
-            <button class="secondary-btn" onclick="cancelAction()">
-              Cancel
-            </button>
           </div>
-        </section>
-
-        <div class="privacy-note">
-          <strong>Reminder:</strong> Please use your own registered student QR
-          code. Make sure your entry or exit has been confirmed before leaving
-          the scanner.
         </div>
-      </div>
-    </div>
 
-    <footer class="footer">
-      <span>LIBRARYHUB</span> · Library Attendance System<br>
-      Supporting a more organized and welcoming learning environment.
-    </footer>
+        <div id="profileStatus" class="status-box" role="status" aria-live="polite"
+             style="margin-bottom: 20px;"></div>
+      </div>
+    </section>
   </main>
 
+  <!-- FOOTER -->
+  <footer class="footer">
+    <strong>Library QR Attendance System</strong>
+    <div class="footer-note">
+      Digital attendance monitoring · Please check out before leaving
+    </div>
+  </footer>
+
   <script>
-    // Your deployed Google Apps Script Web App URL.
+    // =====================================================
+    // CONFIGURATION
+    // =====================================================
+
     const GAS_URL =
       "https://script.google.com/macros/s/AKfycbzaHl-MN9mYsEPmjE5O7MMV9L7waUqfCDOk0nVC9QG1t7zQArusgHngRzBH1l0T4opT/exec";
 
-    const scanner = new Html5Qrcode("reader");
+    const ALLOWED_AREAS = [
+      "Interactive Area",
+      "Reading Area",
+      "Discussion Room"
+    ];
 
-    let currentStudentId = "";
+    // =====================================================
+    // STATE
+    // =====================================================
+
+    let scanner = null;
+    let scannerRunning = false;
+    let scanLocked = false;
     let currentStudent = null;
-    let busy = false;
-
-    let cameraTrack = null;
+    let currentVisitArea = "";
+    let requestNumber = 0;
     let zoomSupported = false;
 
-    function setStatus(message, type = "normal") {
-      const status = document.getElementById("status");
-      const icon = document.getElementById("statusIcon");
+    const $ = (id) => document.getElementById(id);
 
-      document.getElementById("statusText").textContent = message;
+    // =====================================================
+    // STATUS MESSAGES
+    // =====================================================
 
-      status.classList.remove("error", "success");
-
-      if (type === "error") {
-        status.classList.add("error");
-        icon.textContent = "!";
-      } else if (type === "success") {
-        status.classList.add("success");
-        icon.textContent = "✓";
-      } else {
-        icon.textContent = "●";
-      }
+    function showStatus(elementId, message, type = "info") {
+      const element = $(elementId);
+      element.className = "status-box show status-" + type;
+      element.textContent = message;
     }
 
-    function show(id) {
-      document.getElementById(id).classList.remove("hidden");
+    function hideStatus(elementId) {
+      const element = $(elementId);
+      element.className = "status-box";
+      element.textContent = "";
     }
 
-    function hide(id) {
-      document.getElementById(id).classList.add("hidden");
-    }
+    // =====================================================
+    // GOOGLE APPS SCRIPT JSONP REQUEST
+    // Apps Script must support action, scan, callback, area.
+    // =====================================================
 
-    function hidePanels() {
-      hide("studentPanel");
-      hide("areaPanel");
-      hide("exitPanel");
-    }
-
-    function displayStudent(student) {
-      currentStudent = student;
-
-      const middle = student.middleInitial
-        ? " " + student.middleInitial
-        : "";
-
-      document.getElementById("studentName").textContent =
-        student.firstName + middle + " " + student.lastName;
-
-      const details = document.getElementById("studentDetails");
-      details.replaceChildren();
-
-      const values = [
-        ["Student ID", student.studentId],
-        ["Section", student.section],
-        ["Gender", student.gender]
-      ];
-
-      values.forEach(function(item) {
-        const box = document.createElement("div");
-        box.className = "detail-item";
-
-        const label = document.createElement("span");
-        label.className = "detail-label";
-        label.textContent = item[0];
-
-        const value = document.createElement("span");
-        value.className = "detail-value";
-        value.textContent = item[1] || "Not provided";
-
-        box.appendChild(label);
-        box.appendChild(value);
-        details.appendChild(box);
-      });
-
-      show("studentPanel");
-    }
-
-    // Communicate with Apps Script using JSONP.
-    function requestAppsScript(action, extraParams = {}) {
-      return new Promise(function(resolve, reject) {
+    function requestAppsScript(action, studentId, area = "") {
+      return new Promise((resolve, reject) => {
         const callbackName =
-          "libraryCallback_" + Date.now() + "_" +
-          Math.floor(Math.random() * 1000000);
-
-        const params = new URLSearchParams({
-          action: action,
-          scan: currentStudentId,
-          callback: callbackName,
-          ...extraParams
-        });
+          "libraryCallback_" + Date.now() + "_" + (++requestNumber);
 
         const script = document.createElement("script");
-        let finished = false;
-        let timeout;
-
-        function cleanup() {
-          delete window[callbackName];
-          script.remove();
-          clearTimeout(timeout);
-        }
-
-        function fail(error) {
-          if (finished) return;
-          finished = true;
+        const timeout = setTimeout(() => {
           cleanup();
-          reject(error);
-        }
-
-        timeout = setTimeout(function() {
-          fail(new Error(
-            "Request timed out. Check the Apps Script URL and deployment access."
+          reject(new Error(
+            "The server did not respond in time. Please check your internet connection and Apps Script deployment."
           ));
         }, 15000);
 
-        window[callbackName] = function(result) {
-          if (finished) return;
-          finished = true;
-          cleanup();
-
-          if (!result || !result.success) {
-            reject(new Error(
-              result && result.message
-                ? result.message
-                : "The server returned an invalid response."
-            ));
-            return;
+        function cleanup() {
+          clearTimeout(timeout);
+          delete window[callbackName];
+          if (script.parentNode) {
+            script.parentNode.removeChild(script);
           }
+        }
 
-          resolve(result);
+        window[callbackName] = function (data) {
+          cleanup();
+          resolve(data);
         };
 
-        script.onerror = function() {
-          fail(new Error(
-            "Connection failed. Check your Apps Script URL and permissions."
+        const params = new URLSearchParams({
+          action: action,
+          scan: studentId,
+          callback: callbackName
+        });
+
+        if (area) {
+          params.set("area", area);
+        }
+
+        script.onerror = function () {
+          cleanup();
+          reject(new Error(
+            "Could not connect to Google Apps Script. Check the deployment URL and web app access settings."
           ));
         };
 
@@ -1081,282 +1279,480 @@
       });
     }
 
-    function resetZoom() {
-      cameraTrack = null;
-      zoomSupported = false;
+    // =====================================================
+    // RESPONSE HELPERS
+    // =====================================================
 
-      const slider = document.getElementById("zoomSlider");
-      slider.disabled = true;
-      slider.min = "1";
-      slider.max = "3";
-      slider.step = "0.1";
-      slider.value = "1";
-
-      document.getElementById("zoomValue").textContent =
-        "Not available yet";
+    function responseSucceeded(data) {
+      if (!data || typeof data !== "object") return false;
+      if (data.success === true || data.ok === true) return true;
+      if (data.status === "success") return true;
+      return false;
     }
 
-    async function setupZoom() {
-      resetZoom();
-
-      await new Promise(function(resolve) {
-        setTimeout(resolve, 300);
-      });
-
-      const video = document.querySelector("#reader video");
-
-      if (!video || !video.srcObject) {
-        document.getElementById("zoomValue").textContent =
-          "Camera zoom unavailable";
-        return;
-      }
-
-      const track = video.srcObject.getVideoTracks()[0];
-
-      if (!track || typeof track.getCapabilities !== "function") {
-        document.getElementById("zoomValue").textContent =
-          "Not supported by this browser";
-        return;
-      }
-
-      try {
-        const capabilities = track.getCapabilities();
-
-        if (!capabilities.zoom) {
-          document.getElementById("zoomValue").textContent =
-            "Not supported by this camera";
-          return;
-        }
-
-        cameraTrack = track;
-        zoomSupported = true;
-
-        const slider = document.getElementById("zoomSlider");
-        const min = capabilities.zoom.min ?? 1;
-        const max = capabilities.zoom.max ?? 3;
-        const step = capabilities.zoom.step || 0.1;
-
-        slider.min = String(min);
-        slider.max = String(max);
-        slider.step = String(step);
-
-        const settings = track.getSettings();
-        const zoom = settings.zoom ?? min;
-
-        slider.value = String(zoom);
-        slider.disabled = false;
-
-        document.getElementById("zoomValue").textContent =
-          "Zoom: " + Number(zoom).toFixed(1) + "×";
-      } catch (error) {
-        resetZoom();
-      }
+    function responseMessage(data, fallback) {
+      if (data && data.message) return String(data.message);
+      if (data && data.error) return String(data.error);
+      return fallback;
     }
 
-    document.getElementById("zoomSlider").addEventListener(
-      "input",
-      async function() {
-        const value = Number(this.value);
+    function getStudentFromResponse(data) {
+      if (!data || typeof data !== "object") return null;
+      return data.student || data.data || null;
+    }
 
-        document.getElementById("zoomValue").textContent =
-          "Zoom: " + value.toFixed(1) + "×";
+    function normalizeStudent(student) {
+      if (!student || typeof student !== "object") return null;
 
-        if (!cameraTrack || !zoomSupported) return;
+      return {
+        id: student.studentId ?? student.id ?? student["Student ID"] ?? "",
+        firstName: student.firstName ?? student.first_name ?? student["First Name"] ?? "",
+        middleInitial: student.middleInitial ?? student.middle_initial ?? student["Middle Initial"] ?? "",
+        lastName: student.lastName ?? student.last_name ?? student["Last Name"] ?? "",
+        section: student.section ?? student.Section ?? "",
+        gender: student.gender ?? student.Gender ?? ""
+      };
+    }
 
-        try {
-          await cameraTrack.applyConstraints({
-            advanced: [{ zoom: value }]
-          });
-        } catch (error) {
-          document.getElementById("zoomValue").textContent =
-            "Zoom could not be applied";
-        }
+    function fullName(student) {
+      return [
+        student.firstName,
+        student.middleInitial,
+        student.lastName
+      ].map(value => String(value || "").trim()).filter(Boolean).join(" ");
+    }
+
+    // =====================================================
+    // SCANNER SETUP
+    // =====================================================
+
+    function createScanner() {
+      if (scanner) return scanner;
+
+      if (typeof Html5Qrcode === "undefined") {
+        showStatus(
+          "scannerStatus",
+          "The QR scanner library could not load. Check your internet connection and reload the page.",
+          "error"
+        );
+        return null;
       }
-    );
 
-    async function startCamera() {
-      if (busy || scanner.isScanning) return;
+      scanner = new Html5Qrcode("reader");
+      return scanner;
+    }
 
-      hidePanels();
-      resetZoom();
+    async function startScanner() {
+      hideStatus("scannerStatus");
 
-      const button = document.getElementById("startButton");
-      button.disabled = true;
+      const instance = createScanner();
+      if (!instance) return;
 
-      setStatus("Starting camera...");
+      $("startBtn").disabled = true;
 
       try {
-        await scanner.start(
+        await instance.start(
           { facingMode: "environment" },
           {
             fps: 10,
-            qrbox: { width: 250, height: 250 }
+            qrbox: function (viewWidth, viewHeight) {
+              const size = Math.floor(Math.min(viewWidth, viewHeight) * 0.70);
+              return {
+                width: Math.min(280, size),
+                height: Math.min(280, size)
+              };
+            },
+            aspectRatio: 1.0
           },
           onQrScanned,
-          function() {
-            // Ignore frames without a readable QR code.
+          function () {
+            // Ignore normal frames where no QR code is detected.
           }
         );
 
-        await setupZoom();
+        scannerRunning = true;
+        scanLocked = false;
 
-        setStatus("Camera is ready. Scan your student QR code.");
+        $("stopBtn").disabled = false;
+        $("startBtn").disabled = true;
+
+        showStatus(
+          "scannerStatus",
+          "Camera is active. Position your student QR code inside the scan area.",
+          "success"
+        );
+
+        setupZoom();
       } catch (error) {
-        setStatus(
-          "Could not start camera. Allow camera access and use HTTPS. " +
-          (error.message || ""),
+        scannerRunning = false;
+        $("startBtn").disabled = false;
+        $("stopBtn").disabled = true;
+
+        showStatus(
+          "scannerStatus",
+          "Unable to start the camera. Allow camera permission, use HTTPS, and close other apps that may be using the camera.",
           "error"
         );
-      } finally {
-        button.disabled = false;
+
+        console.error("Camera error:", error);
       }
     }
 
-    async function stopCamera() {
-      if (scanner.isScanning) {
+    async function stopScanner(showMessage = true) {
+      if (scanner && scannerRunning) {
         try {
           await scanner.stop();
+          await scanner.clear();
         } catch (error) {
-          console.error("Camera stop error:", error);
+          console.warn("Scanner stop:", error);
         }
       }
 
-      resetZoom();
+      scannerRunning = false;
+      zoomSupported = false;
+
+      $("startBtn").disabled = false;
+      $("stopBtn").disabled = true;
+
+      if (showMessage) {
+        showStatus("scannerStatus", "Camera stopped.", "info");
+      }
     }
 
-    async function onQrScanned(decodedText) {
-      if (busy) return;
+    // =====================================================
+    // CAMERA ZOOM
+    // Only supported on some devices and browsers.
+    // =====================================================
 
-      busy = true;
-      currentStudentId = String(decodedText).trim();
+    function setupZoom() {
+      zoomSupported = false;
+      $("zoomSlider").min = 1;
+      $("zoomSlider").max = 3;
+      $("zoomSlider").value = 1;
+      $("zoomValue").textContent = "1.0×";
+    }
 
-      await stopCamera();
-      hidePanels();
+    async function applyZoom(value) {
+      $("zoomValue").textContent = Number(value).toFixed(1) + "×";
 
-      setStatus("Verifying student information...");
+      if (!scannerRunning || !scanner) return;
 
       try {
-        const result = await requestAppsScript("lookup");
+        const video = document.querySelector("#reader video");
+        if (!video || !video.srcObject) return;
 
-        displayStudent(result.student);
+        const tracks = video.srcObject.getVideoTracks();
+        if (!tracks.length) return;
 
-        if (result.checkedIn) {
-          document.getElementById("activeVisit").textContent =
-            result.area || "Area not specified";
+        const track = tracks[0];
+        const capabilities = track.getCapabilities
+          ? track.getCapabilities()
+          : {};
 
-          show("exitPanel");
-          setStatus("Student verified. An active visit was found.", "success");
-        } else {
-          document.querySelectorAll('input[name="libraryArea"]').forEach(
-            function(input) {
-              input.checked = false;
-            }
-          );
-
-          show("areaPanel");
-          setStatus("Student verified. Please choose a study area.", "success");
+        if (!capabilities.zoom) {
+          if (!zoomSupported) {
+            showStatus(
+              "scannerStatus",
+              "Camera zoom is not supported by this device. The scanner can still be used normally.",
+              "warning"
+            );
+          }
+          return;
         }
-      } catch (error) {
-        setStatus(error.message, "error");
-        busy = false;
 
-        document.getElementById("startButton").textContent =
-          "Try Scanning Again";
+        zoomSupported = true;
+
+        const minZoom = capabilities.zoom.min;
+        const maxZoom = capabilities.zoom.max;
+        const actualZoom = Math.max(
+          minZoom,
+          Math.min(maxZoom, Number(value))
+        );
+
+        await track.applyConstraints({
+          advanced: [{ zoom: actualZoom }]
+        });
+      } catch (error) {
+        console.warn("Zoom unavailable:", error);
       }
     }
 
-    async function confirmEntry() {
+    $("zoomSlider").addEventListener("input", function () {
+      applyZoom(this.value);
+    });
+
+    // =====================================================
+    // QR SCAN HANDLER
+    // QR CODE SHOULD CONTAIN THE STUDENT ID ONLY.
+    // =====================================================
+
+    async function onQrScanned(decodedText) {
+      if (scanLocked) return;
+
+      const studentId = String(decodedText || "").trim();
+      if (!studentId) return;
+
+      scanLocked = true;
+      showStatus("scannerStatus", "QR code detected. Looking up student...", "info");
+
+      await stopScanner(false);
+
+      await lookupStudent(studentId);
+    }
+
+    async function lookupStudent(studentId) {
+      hideStatus("profileStatus");
+
+      try {
+        const data = await requestAppsScript("lookup", studentId);
+
+        if (!data || data.success === false || data.ok === false || data.error) {
+          throw new Error(responseMessage(data, "Student lookup failed."));
+        }
+
+        const studentData = getStudentFromResponse(data);
+        const student = normalizeStudent(studentData);
+
+        if (!student || !student.id) {
+          throw new Error(
+            responseMessage(data, "Student not found. Please check the QR code and try again.")
+          );
+        }
+
+        currentStudent = student;
+        currentVisitArea = data.area || data.libraryArea || "";
+
+        renderStudent(student);
+
+        const isCheckedIn = Boolean(
+          data.checkedIn === true ||
+          data.checked_in === true ||
+          data.activeVisit === true
+        );
+
+        if (isCheckedIn) {
+          currentVisitArea = data.area || data.libraryArea || currentVisitArea;
+          showActiveVisit(currentVisitArea);
+          showStatus(
+            "profileStatus",
+            "Student found. An active visit already exists for this student.",
+            "info"
+          );
+        } else {
+          showEntryOptions();
+          showStatus(
+            "profileStatus",
+            "Student verified. Select your library area and confirm your entry.",
+            "success"
+          );
+        }
+
+        showStatus(
+          "scannerStatus",
+          "Student QR code successfully scanned.",
+          "success"
+        );
+      } catch (error) {
+        currentStudent = null;
+        resetProfile();
+
+        showStatus("scannerStatus", error.message || "Unable to look up student.", "error");
+        showStatus("profileStatus", error.message || "Student lookup failed.", "error");
+
+        console.error("Student lookup error:", error);
+      } finally {
+        scanLocked = false;
+      }
+    }
+
+    // =====================================================
+    // DISPLAY STUDENT
+    // =====================================================
+
+    function renderStudent(student) {
+      $("emptyProfile").style.display = "none";
+      $("studentProfile").classList.add("visible");
+
+      $("studentName").textContent = fullName(student) || "Student";
+      $("studentId").textContent = "ID: " + student.id;
+      $("studentSection").textContent = student.section || "Not provided";
+      $("studentGender").textContent = student.gender || "Not provided";
+      $("visitStatus").textContent = "Student verified";
+      $("currentArea").textContent = "Not selected";
+
+      document.querySelectorAll('input[name="libraryArea"]').forEach(input => {
+        input.checked = false;
+      });
+
+      $("entryBtn").disabled = true;
+    }
+
+    function showEntryOptions() {
+      $("areaSection").style.display = "block";
+      $("entrySection").style.display = "block";
+      $("exitSection").classList.remove("visible");
+
+      $("visitStatus").textContent = "Ready to check in";
+      $("currentArea").textContent = "Choose an area";
+    }
+
+    function showActiveVisit(area) {
+      $("areaSection").style.display = "none";
+      $("entrySection").style.display = "none";
+      $("exitSection").classList.add("visible");
+
+      $("visitStatus").textContent = "Checked in";
+      $("currentArea").textContent = area || "Area recorded";
+    }
+
+    function resetProfile() {
+      currentStudent = null;
+      currentVisitArea = "";
+
+      $("emptyProfile").style.display = "block";
+      $("studentProfile").classList.remove("visible");
+      $("entryBtn").disabled = true;
+      $("exitSection").classList.remove("visible");
+
+      hideStatus("profileStatus");
+    }
+
+    // =====================================================
+    // AREA SELECTION
+    // =====================================================
+
+    document.querySelectorAll('input[name="libraryArea"]').forEach(input => {
+      input.addEventListener("change", function () {
+        const selectedArea = document.querySelector(
+          'input[name="libraryArea"]:checked'
+        );
+
+        $("entryBtn").disabled = !selectedArea || !currentStudent;
+        $("currentArea").textContent = selectedArea
+          ? selectedArea.value
+          : "Choose an area";
+      });
+    });
+
+    // =====================================================
+    // RECORD ENTRY
+    // =====================================================
+
+    async function recordEntry() {
+      if (!currentStudent) {
+        showStatus("profileStatus", "Scan a valid student QR code first.", "warning");
+        return;
+      }
+
       const selected = document.querySelector(
         'input[name="libraryArea"]:checked'
       );
 
-      if (!currentStudentId || !currentStudent) {
-        setStatus("Please scan your student QR code first.", "error");
+      if (!selected || !ALLOWED_AREAS.includes(selected.value)) {
+        showStatus("profileStatus", "Please choose a valid library area.", "warning");
         return;
       }
 
-      if (!selected) {
-        setStatus("Please choose a library area before continuing.", "error");
-        return;
-      }
-
-      const button = document.getElementById("entryButton");
-      button.disabled = true;
-
-      setStatus("Recording your library entry...");
+      const area = selected.value;
+      $("entryBtn").disabled = true;
+      $("entryBtn").textContent = "Recording Entry...";
 
       try {
-        const result = await requestAppsScript("entry", {
-          area: selected.value
-        });
+        const data = await requestAppsScript("entry", currentStudent.id, area);
 
-        hidePanels();
+        if (!responseSucceeded(data)) {
+          throw new Error(responseMessage(data, "The entry could not be recorded."));
+        }
 
-        setStatus(
-          result.message + " Area: " + result.area +
-          ". Time: " + result.time,
+        currentVisitArea = area;
+        showActiveVisit(area);
+        $("visitStatus").textContent = "Checked in";
+
+        showStatus(
+          "profileStatus",
+          responseMessage(data, "Library entry recorded successfully."),
+          "success"
+        );
+      } catch (error) {
+        $("entryBtn").disabled = false;
+
+        showStatus(
+          "profileStatus",
+          error.message || "Unable to record entry. Please try again.",
+          "error"
+        );
+      } finally {
+        $("entryBtn").textContent = "Confirm Library Entry";
+      }
+    }
+
+    // =====================================================
+    // RECORD EXIT
+    // =====================================================
+
+    async function recordExit() {
+      if (!currentStudent) return;
+
+      $("exitBtn").disabled = true;
+      $("exitBtn").textContent = "Recording Exit...";
+
+      try {
+        const data = await requestAppsScript("exit", currentStudent.id);
+
+        if (!responseSucceeded(data)) {
+          throw new Error(responseMessage(data, "The exit could not be recorded."));
+        }
+
+        showStatus(
+          "profileStatus",
+          responseMessage(data, "Library exit recorded successfully."),
           "success"
         );
 
-        finishAndReset();
+        $("visitStatus").textContent = "Checked out";
+        $("currentArea").textContent = currentVisitArea || "Visit completed";
+        $("areaSection").style.display = "none";
+        $("entrySection").style.display = "none";
+        $("exitSection").classList.remove("visible");
+
+        // Keep the profile visible so the student can see the result.
+        // Press Start Scanner to scan the next student.
       } catch (error) {
-        setStatus(error.message, "error");
-      } finally {
-        button.disabled = false;
-      }
-    }
-
-    async function confirmExit() {
-      if (!currentStudentId) {
-        setStatus("Please scan your student QR code first.", "error");
-        return;
-      }
-
-      const button = document.getElementById("exitButton");
-      button.disabled = true;
-
-      setStatus("Recording your library exit...");
-
-      try {
-        const result = await requestAppsScript("exit");
-
-        hidePanels();
-
-        setStatus(
-          result.message + " Area: " + result.area +
-          ". Time: " + result.time,
-          "success"
+        showStatus(
+          "profileStatus",
+          error.message || "Unable to record exit. Please try again.",
+          "error"
         );
-
-        finishAndReset();
-      } catch (error) {
-        setStatus(error.message, "error");
       } finally {
-        button.disabled = false;
+        $("exitBtn").disabled = false;
+        $("exitBtn").textContent = "Record Library Exit";
       }
     }
 
-    function cancelAction() {
-      hidePanels();
+    // =====================================================
+    // BUTTON EVENTS
+    // =====================================================
 
-      currentStudentId = "";
-      currentStudent = null;
-      busy = false;
+    $("startBtn").addEventListener("click", async function () {
+      resetProfile();
+      hideStatus("profileStatus");
+      await startScanner();
+    });
 
-      document.getElementById("startButton").textContent =
-        "Start QR Scanner";
+    $("stopBtn").addEventListener("click", async function () {
+      await stopScanner(true);
+    });
 
-      setStatus("Action cancelled. Start the scanner when ready.");
-    }
+    $("entryBtn").addEventListener("click", recordEntry);
+    $("exitBtn").addEventListener("click", recordExit);
 
-    function finishAndReset() {
-      currentStudentId = "";
-      currentStudent = null;
-      busy = false;
+    // =====================================================
+    // INITIAL STATE
+    // =====================================================
 
-      document.getElementById("startButton").textContent =
-        "Scan Next Student";
-    }
+    $("startBtn").disabled = false;
+    $("stopBtn").disabled = true;
+    $("entryBtn").disabled = true;
   </script>
 </body>
 </html>
